@@ -40,7 +40,7 @@ export default function App() {
       <ScrollView contentContainerStyle={{ padding: 20 }} className="pb-8">
         {/* Intro card (Paper) inside a NativeWind-centered container */}
         <View className="items-center mb-6">
-          <Card style={{ width: "100%", maxWidth: 560 }} elevation={6} className="rounded-xl">
+          <Card style={{ width: "100%", maxWidth: 560 }} elevation={5} className="rounded-xl">
             <Card.Content>
               <View className="flex-row items-center justify-between mb-3">
                 <View>

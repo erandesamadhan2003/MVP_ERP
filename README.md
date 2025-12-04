@@ -95,3 +95,110 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+
+
+
+```
+MVPERPApp/
+├── src/
+│   ├── api/
+│   │   ├── client.js              # Axios instance with interceptors
+│   │   ├── endpoints.js           # API endpoints constants
+│   │   └── services/
+│   │       ├── authService.js
+│   │       ├── admissionService.js
+│   │       ├── attendanceService.js
+│   │       ├── resultService.js
+│   │       ├── paymentService.js
+│   │       └── notificationService.js
+│   │
+│   ├── assets/
+│   │   ├── images/
+│   │   ├── icons/
+│   │   └── fonts/
+│   │
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── Button.js
+│   │   │   ├── Input.js
+│   │   │   ├── Card.js
+│   │   │   ├── Loader.js
+│   │   │   ├── EmptyState.js
+│   │   │   └── ErrorBoundary.js
+│   │   ├── attendance/
+│   │   │   ├── AttendanceCard.js
+│   │   │   └── AttendanceChart.js
+│   │   ├── result/
+│   │   │   ├── ResultCard.js
+│   │   │   └── SubjectGrade.js
+│   │   └── payment/
+│   │       ├── FeeCard.js
+│   │       └── PaymentHistory.js
+│   │
+│   ├── navigation/
+│   │   ├── AppNavigator.js        # Root navigator
+│   │   ├── AuthNavigator.js       # Login/Signup flow
+│   │   ├── StudentNavigator.js    # Student bottom tabs
+│   │   ├── TeacherNavigator.js    # Teacher bottom tabs
+│   │   └── AdminNavigator.js      # Admin drawer
+│   │
+│   ├── screens/
+│   │   ├── auth/
+│   │   │   ├── LoginScreen.js
+│   │   │   ├── CollegeSelectionScreen.js
+│   │   │   └── ForgotPasswordScreen.js
+│   │   ├── student/
+│   │   │   ├── DashboardScreen.js
+│   │   │   ├── AttendanceScreen.js
+│   │   │   ├── ResultScreen.js
+│   │   │   ├── FeePaymentScreen.js
+│   │   │   ├── TimeTableScreen.js
+│   │   │   └── ProfileScreen.js
+│   │   ├── teacher/
+│   │   │   ├── TeacherDashboardScreen.js
+│   │   │   ├── MarkAttendanceScreen.js
+│   │   │   ├── EnterMarksScreen.js
+│   │   │   └── StudentListScreen.js
+│   │   ├── admission/
+│   │   │   ├── AdmissionFormScreen.js
+│   │   │   ├── DocumentUploadScreen.js
+│   │   │   └── AdmissionStatusScreen.js
+│   │   └── shared/
+│   │       ├── NotificationsScreen.js
+│   │       └── SettingsScreen.js
+│   │
+│   ├── redux/
+│   │   ├── store.js
+│   │   └── slices/
+│   │       ├── authSlice.js
+│   │       ├── userSlice.js
+│   │       ├── attendanceSlice.js
+│   │       ├── resultSlice.js
+│   │       ├── paymentSlice.js
+│   │       └── notificationSlice.js
+│   │
+│   ├── utils/
+│   │   ├── constants.js           # App constants
+│   │   ├── helpers.js             # Helper functions
+│   │   ├── validators.js          # Form validation
+│   │   ├── dateUtils.js
+│   │   └── storage.js             # AsyncStorage helpers
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.js
+│   │   ├── useAttendance.js
+│   │   └── usePayment.js
+│   │
+│   ├── theme/
+│   │   ├── colors.js
+│   │   ├── typography.js
+│   │   └── spacing.js
+│   │
+│   └── types/                     # TypeScript types
+│       ├── auth.types.ts
+│       ├── student.types.ts
+│       └── api.types.ts
+│
+├── App.js
+└── package.json
