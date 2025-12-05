@@ -18,6 +18,30 @@ export interface StudentLoginResponse {
     };
 }
 
+export interface StudentRegisterPayload {
+    AdharID: string;
+    ConfirmPassword: string;
+    FormNo: string;
+    MobileNo: string;
+    PasswordHash: string;
+    UserLogin: string;
+}
+
+export interface StudentRegisterResponse {
+    ResponseCode: number;
+    Message: string | null;
+    ResponseData: {
+        RCNO: number | null;
+        CirculationID: number | null;
+        BookID: number | null;
+        AccessionNo: string | null;
+        RUserID: number | null;
+        GenRegisterID: number | null;
+        ClassLectureId: number | null;
+        v_Return: number;
+    };
+}
+
 // ! ========================= User Data and Menu Item interfaces ===========================
 export interface UserData {
     ApplicationToken: string;
@@ -69,7 +93,6 @@ export interface MenuItem {
     IsActive: boolean | null;
     Childrens: MenuItem[] | null; // Recursive type for nested menus
 }
-
 
 // ! ========================= State interface for authentication ==========================
 export interface AuthState {

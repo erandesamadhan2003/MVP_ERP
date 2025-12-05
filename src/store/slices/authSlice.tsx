@@ -1,4 +1,4 @@
-import { StudentLogin } from '../../api/services/authService';
+import { StudentLogin } from '../../api/services/student/authService';
 import { AuthState, StudentLoginPayload } from '../../types/auth.types';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
@@ -23,11 +23,11 @@ export const LoginStudent = createAsyncThunk(
 );
 
 export const authSlice = createSlice({
-    name: 'auth', 
+    name: 'auth',
     initialState,
     reducers: {
         logout: state => {
-            state.token = null; 
+            state.token = null;
             state.isAuthenticated = false;
             state.user = null;
         },
@@ -42,15 +42,14 @@ export const authSlice = createSlice({
                 state.loading = false;
                 state.isAuthenticated = true;
                 state.user = action.payload.UserData;
-                state.token = action.payload.IdToken; 
+                state.token = action.payload.IdToken;
             })
             .addCase(LoginStudent.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });
-    }
+    },
 });
-
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;
