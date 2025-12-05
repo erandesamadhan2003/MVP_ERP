@@ -25,3 +25,10 @@ export interface ClassResponse {
     Message: string | null;
     ResponseData: Class[];
 }
+
+export interface ClassState {
+    classes: Class[];
+    selectedClass: Class | null;
+    loading: boolean;
+    error: string | null;
+}

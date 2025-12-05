@@ -18,3 +18,10 @@ export interface CourseResponse {
     Message: string | null;
     ResponseData: Course[];
 }
+
+export interface CourseState {
+    courses: Course[];
+    selectedCourse: Course | null;
+    loading: boolean;
+    error: string | null;
+}

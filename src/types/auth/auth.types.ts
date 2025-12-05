@@ -3,7 +3,7 @@ export interface StudentLoginPayload {
     CCode?: string;
     UserName: string;
     Password: string;
-    AceYear: string; 
+    AceYear: string;
     UserAccessAddress: string;
     UserType: number;
 }

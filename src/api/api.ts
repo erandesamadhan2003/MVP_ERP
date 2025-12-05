@@ -8,16 +8,22 @@ export const api = axios.create({
     },
 });
 
-api.interceptors.request.use(config => {
-    // take token from redux store
-    
-    return config;
-}, error => {
-    return Promise.reject(error);
-});
+api.interceptors.request.use(
+    config => {
+        // take token from redux store
 
-api.interceptors.response.use(response => {
-    return response;
-}, error => {
-    return Promise.reject(error);
-});
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
+    },
+);
+
+api.interceptors.response.use(
+    response => {
+        return response;
+    },
+    error => {
+        return Promise.reject(error);
+    },
+);
