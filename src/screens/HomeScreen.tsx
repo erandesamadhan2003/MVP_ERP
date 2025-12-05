@@ -134,7 +134,9 @@ export default function HomeScreen({ navigation }: any) {
             ) : (
               <View style={{ height: VISIBLE_HEIGHT, overflow: 'hidden' }}>
                 <ScrollView
-                  ref={ref => (scrollRef.current = ref)}
+                  ref={ref => {
+                    scrollRef.current = ref;
+                  }}
                   scrollEnabled={false}
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingRight: Platform.OS === 'android' ? 8 : 0 }}
