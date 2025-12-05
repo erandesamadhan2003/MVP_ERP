@@ -9,11 +9,8 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
-    // take token from local storage of android 
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //     config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // take token from redux store
+    
     return config;
 }, error => {
     return Promise.reject(error);
