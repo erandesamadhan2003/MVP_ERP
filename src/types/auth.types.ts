@@ -1,3 +1,4 @@
+// ! ========================= Payload and Response interfaces for authentication of Student ===========================
 export interface StudentLoginPayload {
     CCode?: string;
     UserName: string;
@@ -17,6 +18,7 @@ export interface StudentLoginResponse {
     };
 }
 
+// ! ========================= User Data and Menu Item interfaces ===========================
 export interface UserData {
     ApplicationToken: string;
     Email: string;
@@ -68,6 +70,8 @@ export interface MenuItem {
     Childrens: MenuItem[] | null; // Recursive type for nested menus
 }
 
+
+// ! ========================= State interface for authentication ==========================
 export interface AuthState {
     user: UserData | null;
     token: string | null;
