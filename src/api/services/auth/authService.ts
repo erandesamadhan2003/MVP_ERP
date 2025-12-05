@@ -2,9 +2,9 @@ import { api } from '../../api';
 import {
     StudentLoginPayload,
     StudentRegisterPayload,
-} from '../../../types/auth.types';
+} from '../../../types/auth/auth.types';
 
-export const StudentLogin = async (payload: StudentLoginPayload) => {
+export const Login = async (payload: StudentLoginPayload) => {
     try {
         // const response = await api.post('/Account/Login', payload);
         const response = await api.post('/Account/GetLoginDetails', payload);
@@ -14,7 +14,7 @@ export const StudentLogin = async (payload: StudentLoginPayload) => {
     }
 };
 
-export const StudentRegister = async (payload: StudentRegisterPayload) => {
+export const Register = async (payload: StudentRegisterPayload) => {
     try {
         const response = await api.post(
             'Admission/Registration/StudentPreRegistrations',
