@@ -34,9 +34,18 @@ export default function HomeScreen({ navigation }: any) {
   const fetchNews = async () => {
     try {
       const res = await NewsAndAnnouncementsService();
-      setNewsList(res?.ResponseData || []);
+      // backend may return { ResponseData: [...] } or the service may already return the array
+      const list = res?.ResponseData ?? res?.data ?? res ?? [];
+      // if the wrapper exists (e.g. ResponseData.ResponseData), unwrap one more level
+      const finalList = Array.isArray(list)
+        ? list
+        : Array.isArray(list?.ResponseData)
+        ? list.ResponseData
+        : [];
+      setNewsList(finalList);
     } catch (error) {
       console.log('fetchNews error', error);
+      setNewsList([]);
     } finally {
       setLoading(false);
     }
@@ -115,11 +124,10 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Login Row (three cards in a single row) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Login As</Text>
-        <View style={styles.loginRow}>
-          {renderLoginCard('Student', 'StudentLogin', 'account-school', '#0A84FF')}
-          {renderLoginCard('Faculty', 'FacultyLogin', 'account-tie', '#0BB24A')}
-          {renderLoginCard('Institute', 'InstituteLogin', 'office-building', '#F2A400')}
+        <Text style={styles.sectionTitle}>Get Started</Text>
+        <View style={[styles.loginRow, { justifyContent: 'space-around' }]}>
+          {renderLoginCard('Login', 'Login', 'login', '#0A84FF')}
+          {renderLoginCard('Register', 'Register', 'account-plus', '#0BB24A')}
         </View>
       </View>
 

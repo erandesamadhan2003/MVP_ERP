@@ -1,6 +1,7 @@
 import { Login } from '../../../api/services/auth/authService';
 import { AuthState, LoginPayload } from '../../../types/auth/auth.types';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const initialState: AuthState = {
     user: null,
@@ -15,9 +16,21 @@ export const LoginUser = createAsyncThunk(
     async (payload: LoginPayload, { rejectWithValue }) => {
         try {
             const response = await Login(payload);
+
+            // Normalize response and treat non-success as failure.
+            // The backend uses `ResponseCode` to indicate success (assume 1 = success).
+            const code = response?.ResponseCode;
+            const hasUser = !!response?.ResponseData?.UserData;
+
+            if (code !== 1 || !hasUser) {
+                const msg = response?.Message || 'Invalid credentials';
+                return rejectWithValue(msg);
+            }
+
             return response.ResponseData;
         } catch (error: any) {
-            return rejectWithValue(error.response.data);
+            const message = error?.response?.data || error?.message || 'Login failed';
+            return rejectWithValue(message);
         }
     },
 );
@@ -30,6 +43,10 @@ export const authSlice = createSlice({
             state.token = null;
             state.isAuthenticated = false;
             state.user = null;
+        },
+        setUser: (state, action) => {
+            state.user = { ...(state.user || {}), ...(action.payload || {}) } as any;
+            state.isAuthenticated = !!state.user;
         },
     },
     extraReducers: builder => {
@@ -51,5 +68,15 @@ export const authSlice = createSlice({
     },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, setUser } = authSlice.actions;
+
+// Thunk to clear persisted token and logout
+export const LogoutUser = createAsyncThunk('auth/logoutUser', async (_, { dispatch }) => {
+    try {
+        await AsyncStorage.removeItem('IdToken');
+    } catch (e) {
+        // ignore
+    }
+    dispatch(logout());
+});
 export default authSlice.reducer;

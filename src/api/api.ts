@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const api = axios.create({
     baseURL: 'http://mvperp.org:82/api',
@@ -9,9 +10,15 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(
-    config => {
-        // take token from redux store
-
+    async (config) => {
+        try {
+            const token = await AsyncStorage.getItem('IdToken');
+            if (token && config && config.headers) {
+                config.headers['Authorization'] = `Bearer ${token}`;
+            }
+        } catch (e) {
+            // ignore
+        }
         return config;
     },
     error => {
@@ -20,10 +27,6 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-    response => {
-        return response;
-    },
-    error => {
-        return Promise.reject(error);
-    },
+    response => response,
+    error => Promise.reject(error),
 );

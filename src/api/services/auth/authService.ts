@@ -6,8 +6,8 @@ import {
 
 export const Login = async (payload: LoginPayload) => {
     try {
-        // const response = await api.post('/Account/Login', payload);
-        const response = await api.post('/Account/GetLoginDetails', payload);
+        const response = await api.post('/Account/Login', payload);
+        // const response = await api.post('/Account/GetLoginDetails', payload);
         return response.data;
     } catch (error) {
         throw error;
