@@ -1,10 +1,10 @@
 import { api } from '../../api';
 import {
-    StudentLoginPayload,
+    LoginPayload,
     StudentRegisterPayload,
 } from '../../../types/auth/auth.types';
 
-export const Login = async (payload: StudentLoginPayload) => {
+export const Login = async (payload: LoginPayload) => {
     try {
         // const response = await api.post('/Account/Login', payload);
         const response = await api.post('/Account/GetLoginDetails', payload);

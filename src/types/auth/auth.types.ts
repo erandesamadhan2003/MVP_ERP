@@ -1,5 +1,5 @@
 // ! ========================= Payload and Response interfaces for authentication of Student ===========================
-export interface StudentLoginPayload {
+export interface LoginPayload {
     CCode?: string;
     UserName: string;
     Password: string;
@@ -8,9 +8,9 @@ export interface StudentLoginPayload {
     UserType: number;
 }
 
-export interface StudentLoginResponse {
+export interface LoginResponse {
     ResponseCode: number;
-    Message: string | null;
+    Message: string | null;  
     ResponseData: {
         IdToken: string;
         ExpiresIn: number;

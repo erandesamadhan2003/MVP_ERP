@@ -1,5 +1,5 @@
 import { Login } from '../../../api/services/auth/authService';
-import { AuthState, StudentLoginPayload } from '../../../types/auth/auth.types';
+import { AuthState, LoginPayload } from '../../../types/auth/auth.types';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 const initialState: AuthState = {
@@ -12,7 +12,7 @@ const initialState: AuthState = {
 
 export const LoginUser = createAsyncThunk(
     'auth/loginUser',
-    async (payload: StudentLoginPayload, { rejectWithValue }) => {
+    async (payload: LoginPayload, { rejectWithValue }) => {
         try {
             const response = await Login(payload);
             return response.ResponseData;
