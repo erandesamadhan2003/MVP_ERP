@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
+import authReducer from './slices/auth/authSlice';
 import courseReducer from './slices/student/CourseSlice';
 import classReducer from './slices/student/ClassSlice';
 import studentReducer from './slices/student/studentSlice';

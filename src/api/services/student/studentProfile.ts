@@ -1,3 +1,4 @@
+import { StudentProfileMaster } from '../../../types/student/studentProfile.types';
 import { api } from '../../api';
 
 export const GetStudentDetails = async ( UserID: number, ApplicationToken: string) => {
@@ -41,3 +42,14 @@ export const GetStudentProfileSelectList = async () => {
         throw error;
     }
 };          
+
+export const UpdateStudentProfile = async (payload: StudentProfileMaster) => {
+    try {
+        const response = await api.post('/Admission/Registration/AddMeritRegistrations', 
+            payload
+        );
+    } catch (error) {
+        throw error;
+    }
+}
+
