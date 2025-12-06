@@ -7,21 +7,21 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/screens/HomeScreen";
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
-import StudentScreen from './src/screens/student/student';
-import FacultyScreen from './src/screens/faculty/facutly';
 import DebugScreen from './src/screens/DebugScreen';
+import StudentNavigator from './src/navigation/StudentNavigator';
+import FacultyNavigator from './src/navigation/FacultyNavigator';
 import { Provider } from 'react-redux';
 import { store } from './src/store/store';
 
 const StudentLoginScreen = () => (
   <SafeAreaProvider>
-    <></>
+    <StudentNavigator />
   </SafeAreaProvider>
 );
 
 const FacultyLoginScreen = () => (
   <SafeAreaProvider>
-    <></>
+    <FacultyNavigator />
   </SafeAreaProvider>
 );
 
@@ -43,8 +43,8 @@ export default function App() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="StudentDashboard" component={StudentScreen} />
-            <Stack.Screen name="FacultyDashboard" component={FacultyScreen} />
+            <Stack.Screen name="StudentDashboard" component={StudentNavigator} />
+            <Stack.Screen name="FacultyDashboard" component={FacultyNavigator} />
             <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true }} />
           </Stack.Navigator>
           </NavigationContainer>

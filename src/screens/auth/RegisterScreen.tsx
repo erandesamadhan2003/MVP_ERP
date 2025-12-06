@@ -14,9 +14,11 @@ import {
   ActivityIndicator,
   Snackbar,
   HelperText,
+  IconButton,
 } from 'react-native-paper';
 import { Register as RegisterService } from '../../api/services/auth/authService';
 import { StudentRegisterPayload } from '../../types/auth/auth.types';
+import { validateRegister } from '../../utils/constant';
 
 export default function RegisterScreen({ navigation }: any) {
   const [formData, setFormData] = useState({
@@ -27,6 +29,9 @@ export default function RegisterScreen({ navigation }: any) {
     formNo: '',
     password: '',
     confirmPassword: '',
+    // initial parameters as requested (kept for parity; registration service will pick relevant fields)
+    AceYear: new Date().toISOString(),
+    UserType: 12,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -37,48 +42,9 @@ export default function RegisterScreen({ navigation }: any) {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
-    const errors: Record<string, string> = {};
-
-    if (!formData.userName.trim()) {
-      errors.userName = 'Username is required';
-    }
-
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Enter a valid email';
-    }
-
-    if (!formData.mobileNo.trim()) {
-      errors.mobileNo = 'Mobile number is required';
-    } else if (!/^\d{10}$/.test(formData.mobileNo.replace(/\D/g, ''))) {
-      errors.mobileNo = 'Enter a valid 10-digit mobile number';
-    }
-
-    if (!formData.adharID.trim()) {
-      errors.adharID = 'Aadhar ID is required';
-    } else if (!/^\d{12}$/.test(formData.adharID.replace(/\D/g, ''))) {
-      errors.adharID = 'Enter a valid 12-digit Aadhar ID';
-    }
-
-    if (!formData.formNo.trim()) {
-      errors.formNo = 'Form number is required';
-    }
-
-    if (!formData.password.trim()) {
-      errors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!formData.confirmPassword.trim()) {
-      errors.confirmPassword = 'Confirm password is required';
-    } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-
+    const { valid, errors } = validateRegister(formData as Record<string, any>);
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    return valid;
   };
 
   const handleRegister = async () => {
@@ -132,7 +98,14 @@ export default function RegisterScreen({ navigation }: any) {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>← Back</Text>
+            <IconButton
+            icon="arrow-left"
+            size={20}
+            onPress={() => navigation.goBack()}
+            mode="outlined"
+            style={styles.backButton}
+            iconColor="#1649b2"
+          />
           </TouchableOpacity>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join the eCampus</Text>
@@ -327,7 +300,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: 20, paddingVertical: 30 },
 
   headerContainer: { marginBottom: 30, marginTop: 10 },
-  backButton: { marginBottom: 20 },
+  backButton: { marginBottom: 12 },
   backButtonText: { fontSize: 16, color: '#1649b2', fontWeight: '600' },
   title: { fontSize: 28, fontWeight: '700', color: '#08306b', marginBottom: 8 },
   subtitle: { fontSize: 14, color: '#666' },
