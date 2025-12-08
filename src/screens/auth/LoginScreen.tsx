@@ -17,7 +17,7 @@ import {
   IconButton,
 } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
-import { LoginUser, setUser } from '../../store/slices/authSlice';
+import { LoginUser, setUser } from '../../store/slices/auth/authSlice';
 import { api } from '../../api/api';
 import { LoginPayload } from '../../types/auth/auth.types';
 import { AppDispatch, RootState } from '../../store/store';

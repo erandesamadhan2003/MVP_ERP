@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button, Avatar } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
-import { logout, LogoutUser } from '../../store/slices/authSlice';
+import { logout, LogoutUser } from '../../store/slices/auth/authSlice';
 
 export default function FacultyScreen({ navigation }: any) {
   const dispatch = useDispatch<AppDispatch>();

@@ -3,14 +3,14 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Card, Avatar, Divider, Button, Icon } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
-import { logout, LogoutUser } from '../../store/slices/authSlice';
+import { logout, LogoutUser } from '../../store/slices/auth/authSlice';
 import { MenuItem } from '../../types/auth/auth.types';
 
 export default function StudentScreen({ navigation }: any) {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
   const menu = useSelector((state: RootState) => state.auth.user?.Menu || []);
-  const [expandedMenuId, setExpandedMenuId] = useState<number | null>(null);
+  const [expandedMenuIds, setExpandedMenuIds] = useState<Set<number>>(new Set());
   const [isMenuExpanded, setIsMenuExpanded] = useState<boolean>(false);
   // Dashboard stats (example placeholders — replace with real counts when available)
   const [lecturesCount] = useState<number>(0);
@@ -47,9 +47,21 @@ export default function StudentScreen({ navigation }: any) {
     // Add more mappings as needed
   };
 
+  const toggleMenuExpansion = (menuId: number) => {
+    setExpandedMenuIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(menuId)) {
+        newSet.delete(menuId);
+      } else {
+        newSet.add(menuId);
+      }
+      return newSet;
+    });
+  };
+
   const MenuItem = ({ item, level = 0 }: { item: MenuItem; level?: number }) => {
     const children = getChildren(item.MenuIdentity);
-    const isExpanded = expandedMenuId === item.MenuIdentity;
+    const isExpanded = expandedMenuIds.has(item.MenuIdentity);
     const hasChildren = children.length > 0;
 
     return (
@@ -63,7 +75,7 @@ export default function StudentScreen({ navigation }: any) {
           ]}
           onPress={() => {
             if (hasChildren) {
-              setExpandedMenuId(isExpanded ? null : item.MenuIdentity);
+              toggleMenuExpansion(item.MenuIdentity);
             } else {
               handleMenuItemPress(item);
             }
