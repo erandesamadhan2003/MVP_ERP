@@ -2,14 +2,16 @@ import { StudentProfileMaster } from '../../../types/student/studentProfile.type
 import { api } from '../../api';
 
 export const GetStudentDetails = async ( UserID: number, ApplicationToken: string) => {
-    try {
-        const response = await api.get(`/Student/StudentProfile/GetStudentProfileDetails`,{
-            params: { UserID, ApplicationToken},
-        });
-        return response.data;
-    } catch (error) {
-        throw error;
+    if (!UserID || !ApplicationToken) {
+        throw new Error('UserID and ApplicationToken are required');
     }
+
+    // Correct endpoint: /Admission/Registration/GetStudentDetails
+    const url = '/Admission/Registration/GetStudentDetails';
+    const params = { UserID, ApplicationToken };
+    
+    const response = await api.get(url, { params });
+    return response.data;
 };
 
 export const GetCoursesOnSection = async ( SectionID: number) => {

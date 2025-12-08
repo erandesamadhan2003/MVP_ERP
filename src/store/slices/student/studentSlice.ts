@@ -3,14 +3,18 @@ import {
     StudentState, 
     StudentProfileResponseData,
     StudentProfileMaster,
-    StudentProfileDocument 
+    StudentProfileDocument,
+    StudentProfileSelectListData 
 } from '../../../types/student/studentProfile.types';
-import { GetStudentDetails } from '../../../api/services/student/studentProfile';
+import { GetStudentDetails, GetStudentProfileSelectList } from '../../../api/services/student/studentProfile';
 
 const InitailState: StudentState = {
     profile: null,
+    selectLists: null,
     loading: false,
+    selectListsLoading: false,
     error: null,
+    selectListsError: null,
 };
 
 export const StudentDetails = createAsyncThunk<
@@ -21,10 +25,38 @@ export const StudentDetails = createAsyncThunk<
     'student/fetchDetails',
     async ({ UserID, ApplicationToken }, { rejectWithValue }) => {
         try {
+            if (!UserID || !ApplicationToken) {
+                return rejectWithValue('UserID and ApplicationToken are required');
+            }
             const response = await GetStudentDetails(UserID, ApplicationToken);
-            return response.ResponseData;
+            if (response?.ResponseCode === 1 && response?.ResponseData) {
+                return response.ResponseData;
+            }
+            return rejectWithValue(response?.Message || 'Failed to fetch student details');
         } catch (error: any) {
-            return rejectWithValue(error?.message || 'Failed to fetch student details');
+            const errorMsg = error?.response?.data?.Message || 
+                           error?.message || 
+                           'Failed to fetch student details';
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
+export const FetchStudentProfileSelectList = createAsyncThunk<
+    StudentProfileSelectListData,
+    void,
+    { rejectValue: string }
+>(
+    'student/fetchSelectLists',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await GetStudentProfileSelectList();
+            if (response.ResponseCode === 1 && response.ResponseData) {
+                return response.ResponseData;
+            }
+            return rejectWithValue(response.Message || 'Failed to fetch select lists');
+        } catch (error: any) {
+            return rejectWithValue(error?.message || 'Failed to fetch select lists');
         }
     }
 );
@@ -113,6 +145,18 @@ export const studentSlice = createSlice({
             .addCase(StudentDetails.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(FetchStudentProfileSelectList.pending, (state) => {
+                state.selectListsLoading = true;
+                state.selectListsError = null;
+            })
+            .addCase(FetchStudentProfileSelectList.fulfilled, (state, action) => {
+                state.selectListsLoading = false;
+                state.selectLists = action.payload;
+            })
+            .addCase(FetchStudentProfileSelectList.rejected, (state, action) => {
+                state.selectListsLoading = false;
+                state.selectListsError = action.payload as string;
             });
     },
 });
