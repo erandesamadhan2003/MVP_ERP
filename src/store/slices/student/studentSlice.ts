@@ -4,9 +4,9 @@ import {
     StudentProfileResponseData,
     StudentProfileMaster,
     StudentProfileDocument,
-    StudentProfileSelectListData 
 } from '../../../types/student/studentProfile.types';
 import { GetStudentDetails, GetStudentProfileSelectList } from '../../../api/services/student/studentProfile';
+import { SelectLists } from '../../../types/student/SelectList.types';
 
 const InitailState: StudentState = {
     profile: null,
@@ -43,7 +43,7 @@ export const StudentDetails = createAsyncThunk<
 );
 
 export const FetchStudentProfileSelectList = createAsyncThunk<
-    StudentProfileSelectListData,
+    SelectLists,
     void,
     { rejectValue: string }
 >(

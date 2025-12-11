@@ -1,3 +1,5 @@
+import { SelectLists } from "./SelectList.types";
+
 export interface StudentProfileMaster {
     MeritStudentInfoID: number;
     MeritStudentMasterID: number | null;
@@ -106,126 +108,126 @@ export interface StudentProfileApiResponse {
 }
 
 
-// Select List Types
-export interface TalukaItem {
-    Taluka: string;
-}
+// // Select List Types
+// export interface TalukaItem {
+//     Taluka: string;
+// }
 
-export interface BloodTypeItem {
-    BloodTypeID: number;
-    BloodGroup: string;
-}
+// export interface BloodTypeItem {
+//     BloodTypeID: number;
+//     BloodGroup: string;
+// }
 
-export interface CategoryItem {
-    // Add category properties based on actual response
-    [key: string]: any;
-}
+// export interface CategoryItem {
+//     // Add category properties based on actual response
+//     [key: string]: any;
+// }
 
-export interface GenderItem {
-    Gender: string;
-    GenderName: string;
-    AddBy: string | null;
-    AddByTime: string | null;
-    EditBy: string | null;
-    EditByTime: string | null;
-}
+// export interface GenderItem {
+//     Gender: string;
+//     GenderName: string;
+//     AddBy: string | null;
+//     AddByTime: string | null;
+//     EditBy: string | null;
+//     EditByTime: string | null;
+// }
 
-export interface HandicapTypeItem {
-    // Add handicap type properties
-    [key: string]: any;
-}
+// export interface HandicapTypeItem {
+//     // Add handicap type properties
+//     [key: string]: any;
+// }
 
-export interface InstituteItem {
-    CCode: number;
-    InstituteName: string;
-    Address: string | null;
-}
+// export interface InstituteItem {
+//     CCode: number;
+//     InstituteName: string;
+//     Address: string | null;
+// }
 
-export interface LanguageMediumItem {
-    PaperLanguageMediumID: number;
-    Medium: string;
-    AddBy: string | null;
-    AddByTime: string | null;
-    EditBy: string | null;
-    EditByTime: string | null;
-}
+// export interface LanguageMediumItem {
+//     PaperLanguageMediumID: number;
+//     Medium: string;
+//     AddBy: string | null;
+//     AddByTime: string | null;
+//     EditBy: string | null;
+//     EditByTime: string | null;
+// }
 
-export interface MeritPrincipalSubjectItem {
-    PrincipalSubjectID: number;
-    PrincipalSubject: string;
-}
+// export interface MeritPrincipalSubjectItem {
+//     PrincipalSubjectID: number;
+//     PrincipalSubject: string;
+// }
 
-export interface MeritSubjectTypeItem {
-    SubjectTypeID: number;
-    SubjectType: string;
-}
+// export interface MeritSubjectTypeItem {
+//     SubjectTypeID: number;
+//     SubjectType: string;
+// }
 
-export interface MinorityItem {
-    MinorityID: number;
-    Minority: string;
-}
+// export interface MinorityItem {
+//     MinorityID: number;
+//     Minority: string;
+// }
 
-export interface PrevSectionItem {
-    SectionID: number;
-    SectionName: string;
-    IsSelected: boolean;
-}
+// export interface PrevSectionItem {
+//     SectionID: number;
+//     SectionName: string;
+//     IsSelected: boolean;
+// }
 
-export interface ReligionItem {
-    ReligionID: number;
-    ReligionName: string;
-    AddBy: string | null;
-    AddByTime: string | null;
-    EditBy: string | null;
-    EditByTime: string | null;
-}
+// export interface ReligionItem {
+//     ReligionID: number;
+//     ReligionName: string;
+//     AddBy: string | null;
+//     AddByTime: string | null;
+//     EditBy: string | null;
+//     EditByTime: string | null;
+// }
 
-export interface SpecialCategoryTypeItem {
-    SpecialCategoryID: number;
-    SpecialCategory: string;
-    AddBy: string | null;
-    AddByTime: string | null;
-    EditBy: string | null;
-    EditByTime: string | null;
-}
+// export interface SpecialCategoryTypeItem {
+//     SpecialCategoryID: number;
+//     SpecialCategory: string;
+//     AddBy: string | null;
+//     AddByTime: string | null;
+//     EditBy: string | null;
+//     EditByTime: string | null;
+// }
 
-export interface SportsItem {
-    SportsID: number;
-    SportName: string;
-    AddBy: string | null;
-    AddByTime: string | null;
-    EditBy: string | null;
-    EditByTime: string | null;
-}
+// export interface SportsItem {
+//     SportsID: number;
+//     SportName: string;
+//     AddBy: string | null;
+//     AddByTime: string | null;
+//     EditBy: string | null;
+//     EditByTime: string | null;
+// }
 
-export interface StudentProfileSelectListData {
-    TalukaList: TalukaItem[];
-    BloodTypeList: BloodTypeItem[];
-    CategoryList: CategoryItem[];
-    GenderList: GenderItem[];
-    HandiCapTypeList: HandicapTypeItem[];
-    InstituteList: InstituteItem[];
-    LanguageMediumList: LanguageMediumItem[];
-    MeritPrincipalSubjectList: MeritPrincipalSubjectItem[];
-    MeritSubjectTypeList: MeritSubjectTypeItem[];
-    MinorityList: MinorityItem[];
-    PrevClassList: any[] | null;
-    PrevCourseList: any[] | null;
-    PrevSectionList: PrevSectionItem[];
-    ReligionList: ReligionItem[];
-    SpecialCategoryTypeList: SpecialCategoryTypeItem[];
-    SportsList: SportsItem[];
-}
+// export interface StudentProfileSelectListData {
+//     TalukaList: TalukaItem[];
+//     BloodTypeList: BloodTypeItem[];
+//     CategoryList: CategoryItem[];
+//     GenderList: GenderItem[];
+//     HandiCapTypeList: HandicapTypeItem[];
+//     InstituteList: InstituteItem[];
+//     LanguageMediumList: LanguageMediumItem[];
+//     MeritPrincipalSubjectList: MeritPrincipalSubjectItem[];
+//     MeritSubjectTypeList: MeritSubjectTypeItem[];
+//     MinorityList: MinorityItem[];
+//     PrevClassList: any[] | null;
+//     PrevCourseList: any[] | null;
+//     PrevSectionList: PrevSectionItem[];
+//     ReligionList: ReligionItem[];
+//     SpecialCategoryTypeList: SpecialCategoryTypeItem[];
+//     SportsList: SportsItem[];
+// }
 
-export interface StudentProfileSelectListResponse {
-    ResponseCode: number;
-    Message: string | null;
-    ResponseData: StudentProfileSelectListData;
-}
+// export interface StudentProfileSelectListResponse {
+//     ResponseCode: number;
+//     Message: string | null;
+//     ResponseData: StudentProfileSelectListData;
+// }
 
 export interface StudentState {
     profile: StudentProfileResponseData | null;
-    selectLists: StudentProfileSelectListData | null;
+    selectLists: SelectLists | null;
     loading: boolean;
     selectListsLoading: boolean;
     error: string | null;

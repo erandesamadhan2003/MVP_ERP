@@ -118,7 +118,7 @@ export interface Taluka {
     Taluka: string;
 }
 
-export interface ResponseData {
+export interface SelectLists {
     BloodTypeList: BloodGroup[];
     CategoryList: Category[];
     GenderList: Gender[];
@@ -140,5 +140,5 @@ export interface ResponseData {
 export interface ApiResponse {
     ResponseCode: number;
     Message: string | null;
-    ResponseData: ResponseData;
+    ResponseData: SelectLists;
 }
