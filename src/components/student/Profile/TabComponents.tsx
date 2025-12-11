@@ -41,14 +41,7 @@ export const BasicDetailsTab = ({
                     <Text style={profileStyles.sectionTitle}>
                         Existing Student?
                     </Text>
-                    <InputField
-                        label="URN NO."
-                        value={
-                            profileData?.URNNO?.toString() ||
-                            user?.URNNO?.toString() ||
-                            ''
-                        }
-                        editable={false}
+                    <InputField label="URN NO." value={profileData?.URNNO?.toString() || user?.URNNO?.toString() || ''} editable={false}
                     />
                 </Card.Content>
             </Card>
