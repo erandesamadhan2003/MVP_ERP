@@ -1,11 +1,11 @@
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../store/store";
-import { UploadFileType } from "../../types/student/studentProfile.types";
+import { UploadFileType, StudentProfileMaster } from "../../types/student/studentProfile.types";
 
 interface UploadArgs {
     thunk: any;
     file: UploadFileType;
-    profileData?: { MeritStudentInfoID?: number | null };
+    profileData?: StudentProfileMaster | { MeritStudentInfoID?: number | null } | null;
     user: { UserID: number; ApplicationToken?: string };
     isCaste?: boolean;
 }
