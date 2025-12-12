@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, Alert } from 'react-native';
 import {
     Text,
     Divider,
@@ -7,15 +7,30 @@ import {
     Button,
     IconButton,
 } from 'react-native-paper';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store/store';
 import { DropdownField } from '../../common/DropdownField';
 import {
     formatDate,
     getDropdownValue,
 } from '../../../screens/student/profile/utils/profileHelpers';
 import { profileStyles } from '../../../screens/student/profile/profileStyles';
-import { StudentProfileMaster } from '../../../types/student/studentProfile.types';
+import { StudentProfileMaster, UploadFileType } from '../../../types/student/studentProfile.types';
 import { SelectLists } from '../../../types/student/SelectList.types';
 import { InputField } from '../../common/InputField';
+import {
+    UploadStudentPhoto,
+    UploadStudentSign,
+    UploadPassCertificate,
+    UploadLCTCCertificate,
+    UploadCasteCertificate,
+    FetchStudentDocuments,
+} from '../../../store/slices/student/studentSlice';
+import { useImagePicker } from '../../../hooks/documentUpload/useImagePicker';
+import { useDocumentPicker } from '../../../hooks/documentUpload/useDocumentPicker';
+import { useUploader } from '../../../hooks/documentUpload/useUploader';
+import { ImageUploadCard } from './ImageUploadCard';
+import { DocumentUploadCard } from './DocumentUploadCard';
 
 interface TabComponentsProps {
     profileData: StudentProfileMaster | null | undefined;
@@ -33,6 +48,81 @@ export const BasicDetailsTab = ({
     user,
     onTabChange,
 }: TabComponentsProps) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const { pickImage } = useImagePicker();
+    const { uploadFile } = useUploader();
+
+    const [photoFile, setPhotoFile] = useState<UploadFileType | null>(null);
+    const [signFile, setSignFile] = useState<UploadFileType | null>(null);
+    const [photoUploading, setPhotoUploading] = useState(false);
+    const [signUploading, setSignUploading] = useState(false);
+
+    const choosePhoto = async () => {
+        try {
+            const image = await pickImage();
+            if (image) setPhotoFile(image);
+        } catch (err: any) {
+            Alert.alert('Error', err?.toString() || 'Failed to pick photo');
+        }
+    };
+
+    const chooseSign = async () => {
+        try {
+            const image = await pickImage();
+            if (image) setSignFile(image);
+        } catch (err: any) {
+            Alert.alert('Error', err?.toString() || 'Failed to pick signature');
+        }
+    };
+
+    const uploadPhoto = async () => {
+        if (!photoFile || !user) {
+            Alert.alert('Error', 'Please select a photo first');
+            return;
+        }
+
+        try {
+            setPhotoUploading(true);
+            await uploadFile({
+                thunk: UploadStudentPhoto,
+                file: photoFile,
+                profileData,
+                user,
+            });
+
+            Alert.alert('Success', 'Photo uploaded successfully');
+            setPhotoFile(null);
+        } catch (error: any) {
+            Alert.alert('Error', error ? String(error) : 'Failed to upload photo');
+        } finally {
+            setPhotoUploading(false);
+        }
+    };
+
+    const uploadSign = async () => {
+        if (!signFile || !user) {
+            Alert.alert('Error', 'Please select a signature first');
+            return;
+        }
+
+        try {
+            setSignUploading(true);
+            await uploadFile({
+                thunk: UploadStudentSign,
+                file: signFile,
+                profileData,
+                user,
+            });
+
+            Alert.alert('Success', 'Signature uploaded successfully');
+            setSignFile(null);
+        } catch (error: any) {
+            Alert.alert('Error', error ? String(error) : 'Failed to upload signature');
+        } finally {
+            setSignUploading(false);
+        }
+    };
+
     return (
         <ScrollView showsVerticalScrollIndicator={false}>
             {/* Existing Student - URN NO */}
@@ -41,7 +131,10 @@ export const BasicDetailsTab = ({
                     <Text style={profileStyles.sectionTitle}>
                         Existing Student?
                     </Text>
-                    <InputField label="URN NO." value={profileData?.URNNO?.toString() || user?.URNNO?.toString() || ''} editable={false}
+                    <InputField 
+                        label="URN NO." 
+                        value={profileData?.URNNO?.toString() || user?.URNNO?.toString() || ''} 
+                        editable={false}
                     />
                 </Card.Content>
             </Card>
@@ -58,11 +151,11 @@ export const BasicDetailsTab = ({
                     <InputField label="User Email" value={profileData?.Email1 || user?.Email || ''} editable={false} />
                     <InputField label="Password" value="********" secureTextEntry editable={false} />
                     <InputField label="Conf Password" value="********" secureTextEntry editable={false} />
-                    <InputField label="Last Name" value={profileData?.LastName || ''} />
-                    <InputField label="First Name" value={profileData?.FirstName || ''} />
-                    <InputField label="Father Name" value={profileData?.FatherName || ''} />
-                    <InputField label="Mother Name" value={profileData?.MotherName || ''} />
-                    <InputField label="Grand Father" value={profileData?.GrandFatherName || ''} />
+                    <InputField label="Last Name" value={profileData?.LastName || ''} field="LastName" />
+                    <InputField label="First Name" value={profileData?.FirstName || ''} field="FirstName" />
+                    <InputField label="Father Name" value={profileData?.FatherName || ''} field="FatherName" />
+                    <InputField label="Mother Name" value={profileData?.MotherName || ''} field="MotherName" />
+                    <InputField label="Grand Father" value={profileData?.GrandFatherName || ''} field="GrandFatherName" />
                     <InputField label="Aadhar No." value={profileData?.AdharID || ''} editable={false} />
                 </Card.Content>
             </Card>
@@ -76,7 +169,7 @@ export const BasicDetailsTab = ({
                     <Divider style={profileStyles.divider} />
 
                     <InputField label="Birth Date" value={formatDate(profileData?.DateOfBirth)} editable={false} icon="calendar" />
-                    <InputField label="Birth Place" value={profileData?.BirthPlace || ''} editable={false} />
+                    <InputField label="Birth Place" value={profileData?.BirthPlace || ''} field="BirthPlace" />
 
                     <DropdownField
                         label="Birth Taluka"
@@ -102,7 +195,7 @@ export const BasicDetailsTab = ({
                         selectLists={selectLists}
                     />
 
-                    <InputField label="Caste" value={profileData?.ReligionCast || ''} editable={false} />
+                    <InputField label="Caste" value={profileData?.ReligionCast || ''} field="ReligionCast" />
 
                     <DropdownField
                         label="Category"
@@ -231,7 +324,7 @@ export const BasicDetailsTab = ({
                 </Card.Content>
             </Card>
 
-            {/* Identification Information - Same as before */}
+            {/* Identification Information */}
             <Card style={profileStyles.card}>
                 <Card.Content>
                     <Text style={profileStyles.sectionTitle}>
@@ -239,51 +332,23 @@ export const BasicDetailsTab = ({
                     </Text>
                     <Divider style={profileStyles.divider} />
 
-                    <View style={profileStyles.fieldRow}>
-                        <Text style={profileStyles.fieldLabel}>
-                            Student Photo
-                        </Text>
-                        <View style={profileStyles.photoContainer}>
-                            {profileData?.PHOTO ? (
-                                <Text style={profileStyles.photoText}>
-                                    Photo Uploaded
-                                </Text>
-                            ) : (
-                                <Text style={profileStyles.photoText}>
-                                    No Photo
-                                </Text>
-                            )}
-                            <Button
-                                mode="outlined"
-                                style={profileStyles.uploadButton}
-                            >
-                                Choose File
-                            </Button>
-                        </View>
-                    </View>
+                    <ImageUploadCard
+                        title="Student Photo"
+                        file={photoFile}
+                        uploaded={!!profileData?.PHOTO}
+                        onChoose={choosePhoto}
+                        onUpload={uploadPhoto}
+                        uploading={photoUploading}
+                    />
 
-                    <View style={profileStyles.fieldRow}>
-                        <Text style={profileStyles.fieldLabel}>
-                            Student Sign
-                        </Text>
-                        <View style={profileStyles.photoContainer}>
-                            {profileData?.MSIGN ? (
-                                <Text style={profileStyles.photoText}>
-                                    Sign Uploaded
-                                </Text>
-                            ) : (
-                                <Text style={profileStyles.photoText}>
-                                    No Sign
-                                </Text>
-                            )}
-                            <Button
-                                mode="outlined"
-                                style={profileStyles.uploadButton}
-                            >
-                                Choose File
-                            </Button>
-                        </View>
-                    </View>
+                    <ImageUploadCard
+                        title="Student Sign"
+                        file={signFile}
+                        uploaded={!!profileData?.MSIGN}
+                        onChoose={chooseSign}
+                        onUpload={uploadSign}
+                        uploading={signUploading}
+                    />
                 </Card.Content>
             </Card>
 
@@ -313,9 +378,9 @@ export const ContactDetailsTab = ({
                     </Text>
                     <Divider style={profileStyles.divider} />
 
-                    <InputField label="Permanent Address" value={profileData?.PAddress || ''} multiline numberOfLines={3} />
-                    <InputField label="Permanent District" value={profileData?.PDistrict || ''} />
-                    <InputField label="Permanent State" value={profileData?.PState || ''} />
+                    <InputField label="Permanent Address" value={profileData?.PAddress || ''} multiline numberOfLines={3} field="PAddress" />
+                    <InputField label="Permanent District" value={profileData?.PDistrict || ''} field="PDistrict" />
+                    <InputField label="Permanent State" value={profileData?.PState || ''} field="PState" />
 
                     <DropdownField
                         label="Permanent Taluka"
@@ -329,10 +394,10 @@ export const ContactDetailsTab = ({
                         selectLists={selectLists}
                     />
 
-                    <InputField label="Permanent Pin Code" value={profileData?.PPinCode || ''} />
-                    <InputField label="Correspondence Address" value={profileData?.CAddress || ''} multiline numberOfLines={3} />
-                    <InputField label="Correspondence District" value={profileData?.CDistrict || ''} />
-                    <InputField label="Correspondence State" value={profileData?.CState || ''} />
+                    <InputField label="Permanent Pin Code" value={profileData?.PPinCode || ''} field="PPinCode" />
+                    <InputField label="Correspondence Address" value={profileData?.CAddress || ''} multiline numberOfLines={3} field="CAddress" />
+                    <InputField label="Correspondence District" value={profileData?.CDistrict || ''} field="CDistrict" />
+                    <InputField label="Correspondence State" value={profileData?.CState || ''} field="CState" />
 
                     <DropdownField
                         label="Correspondence Taluka"
@@ -346,10 +411,10 @@ export const ContactDetailsTab = ({
                         selectLists={selectLists}
                     />
 
-                    <InputField label="Correspondence Pin Code" value={profileData?.CPinCode || ''} />
-                    <InputField label="Mobile Number" value={profileData?.MobileNo || user?.MobileNo || ''} keyboardType="phone-pad" />
-                    <InputField label="Phone Number" value={profileData?.PhoneNo || user?.PhoneNo || ''} keyboardType="phone-pad" />
-                    <InputField label="Email 2" value={profileData?.Email2 || ''} keyboardType="email-address" />
+                    <InputField label="Correspondence Pin Code" value={profileData?.CPinCode || ''} field="CPinCode" />
+                    <InputField label="Mobile Number" value={profileData?.MobileNo || user?.MobileNo || ''} keyboardType="phone-pad" field="MobileNo" />
+                    <InputField label="Phone Number" value={profileData?.PhoneNo || user?.PhoneNo || ''} keyboardType="phone-pad" field="PhoneNo" />
+                    <InputField label="Email 2" value={profileData?.Email2 || ''} keyboardType="email-address" field="Email2" />
                 </Card.Content>
             </Card>
 
@@ -387,13 +452,13 @@ export const QualificationDetailsTab = ({
                     </Text>
                     <Divider style={profileStyles.divider} />
 
-                    <InputField label="Previous Board/University Name" value={profileData?.PrevBoardUniversityName || ''} />
-                    <InputField label="Previous College Name" value={profileData?.PrevCollegeName || ''} />
-                    <InputField label="Previous Seat Number" value={profileData?.PrevSeatNumber || ''} />
-                    <InputField label="Previous Passing Year" value={formatDate(profileData?.PrevPassingYear)}/>
-                    <InputField label="Previous Percentage" value={profileData?.PrevPercentage?.toString() || ''} keyboardType="numeric" />
-                    <InputField label="Previous Marks" value={profileData?.PrevMarks?.toString() || ''} keyboardType="numeric" />
-                    <InputField label="Previous Grade" value={profileData?.PrevGrade || ''} />
+                    <InputField label="Previous Board/University Name" value={profileData?.PrevBoardUniversityName || ''} field="PrevBoardUniversityName" />
+                    <InputField label="Previous College Name" value={profileData?.PrevCollegeName || ''} field="PrevCollegeName" />
+                    <InputField label="Previous Seat Number" value={profileData?.PrevSeatNumber || ''} field="PrevSeatNumber" />
+                    <InputField label="Previous Passing Year" value={formatDate(profileData?.PrevPassingYear)} editable={false} />
+                    <InputField label="Previous Percentage" value={profileData?.PrevPercentage?.toString() || ''} keyboardType="numeric" field="PrevPercentage" />
+                    <InputField label="Previous Marks" value={profileData?.PrevMarks?.toString() || ''} keyboardType="numeric" field="PrevMarks" />
+                    <InputField label="Previous Grade" value={profileData?.PrevGrade || ''} field="PrevGrade" />
 
                     <DropdownField
                         label="Previous Section"
@@ -431,9 +496,105 @@ export const QualificationDetailsTab = ({
 
 export const DocumentDetailsTab = ({
     profile,
+    profileData,
+    user,
     onTabChange,
 }: TabComponentsProps & { profile: any }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const { pickDocument } = useDocumentPicker();
+    const { uploadFile } = useUploader();
     const documents = profile?.meritRegistrationMasterDocuments || [];
+
+    const [marksheetFile, setMarksheetFile] = useState<UploadFileType | null>(null);
+    const [lctcFile, setLctcFile] = useState<UploadFileType | null>(null);
+    const [casteFile, setCasteFile] = useState<UploadFileType | null>(null);
+    
+    const [marksheetUploading, setMarksheetUploading] = useState(false);
+    const [lctcUploading, setLctcUploading] = useState(false);
+    const [casteUploading, setCasteUploading] = useState(false);
+
+    const chooseDocument = async (type: 'marksheet' | 'lctc' | 'caste') => {
+        try {
+            const file = await pickDocument();
+            if (!file) return;
+
+            switch (type) {
+                case 'marksheet':
+                    setMarksheetFile(file);
+                    break;
+                case 'lctc':
+                    setLctcFile(file);
+                    break;
+                case 'caste':
+                    setCasteFile(file);
+                    break;
+            }
+        } catch (err: any) {
+            Alert.alert('Error', err?.toString() || 'Failed to pick document');
+        }
+    };
+
+    const uploadDocument = async (type: 'marksheet' | 'lctc' | 'caste') => {
+        let file = null;
+        let setUploading: any = null;
+        let uploadAction: any = null;
+
+        switch (type) {
+            case 'marksheet':
+                file = marksheetFile;
+                setUploading = setMarksheetUploading;
+                uploadAction = UploadPassCertificate;
+                break;
+            case 'lctc':
+                file = lctcFile;
+                setUploading = setLctcUploading;
+                uploadAction = UploadLCTCCertificate;
+                break;
+            case 'caste':
+                file = casteFile;
+                setUploading = setCasteUploading;
+                uploadAction = UploadCasteCertificate;
+                break;
+        }
+
+        if (!file || !user) {
+            Alert.alert('Error', 'Please select a file first');
+            return;
+        }
+
+        try {
+            setUploading(true);
+            await uploadFile({
+                thunk: uploadAction,
+                file,
+                profileData,
+                user,
+                isCaste: type === 'caste',
+            });
+
+            // Fetch updated documents
+            await dispatch(FetchStudentDocuments(user.UserID)).unwrap();
+
+            Alert.alert('Success', `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
+            
+            // Clear the selected file
+            switch (type) {
+                case 'marksheet':
+                    setMarksheetFile(null);
+                    break;
+                case 'lctc':
+                    setLctcFile(null);
+                    break;
+                case 'caste':
+                    setCasteFile(null);
+                    break;
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error ? String(error) : `Failed to upload ${type}`);
+        } finally {
+            setUploading(false);
+        }
+    };
 
     return (
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -449,70 +610,29 @@ export const DocumentDetailsTab = ({
                         Certificate, Current Caste Certificate.
                     </Text>
 
-                    <View style={profileStyles.fieldRow}>
-                        <Text style={profileStyles.fieldLabel}>Mark Sheet</Text>
-                        <View style={profileStyles.uploadSection}>
-                            <Button
-                                mode="outlined"
-                                style={profileStyles.uploadButton}
-                            >
-                                Choose File
-                            </Button>
-                            <Text style={profileStyles.fileText}>
-                                No file chosen
-                            </Text>
-                            <Button
-                                mode="contained"
-                                style={profileStyles.uploadActionButton}
-                            >
-                                Upload
-                            </Button>
-                        </View>
-                    </View>
+                    <DocumentUploadCard
+                        label="Mark Sheet"
+                        file={marksheetFile}
+                        onChoose={() => chooseDocument('marksheet')}
+                        onUpload={() => uploadDocument('marksheet')}
+                        uploading={marksheetUploading}
+                    />
 
-                    <View style={profileStyles.fieldRow}>
-                        <Text style={profileStyles.fieldLabel}>LC/TC Cert</Text>
-                        <View style={profileStyles.uploadSection}>
-                            <Button
-                                mode="outlined"
-                                style={profileStyles.uploadButton}
-                            >
-                                Choose File
-                            </Button>
-                            <Text style={profileStyles.fileText}>
-                                No file chosen
-                            </Text>
-                            <Button
-                                mode="contained"
-                                style={profileStyles.uploadActionButton}
-                            >
-                                Upload
-                            </Button>
-                        </View>
-                    </View>
+                    <DocumentUploadCard
+                        label="LC/TC Cert"
+                        file={lctcFile}
+                        onChoose={() => chooseDocument('lctc')}
+                        onUpload={() => uploadDocument('lctc')}
+                        uploading={lctcUploading}
+                    />
 
-                    <View style={profileStyles.fieldRow}>
-                        <Text style={profileStyles.fieldLabel}>
-                            Caste Cert/Allotment Letter
-                        </Text>
-                        <View style={profileStyles.uploadSection}>
-                            <Button
-                                mode="outlined"
-                                style={profileStyles.uploadButton}
-                            >
-                                Choose File
-                            </Button>
-                            <Text style={profileStyles.fileText}>
-                                No file chosen
-                            </Text>
-                            <Button
-                                mode="contained"
-                                style={profileStyles.uploadActionButton}
-                            >
-                                Upload
-                            </Button>
-                        </View>
-                    </View>
+                    <DocumentUploadCard
+                        label="Caste Cert/Allotment Letter"
+                        file={casteFile}
+                        onChoose={() => chooseDocument('caste')}
+                        onUpload={() => uploadDocument('caste')}
+                        uploading={casteUploading}
+                    />
 
                     {documents.length > 0 && (
                         <View style={profileStyles.documentTable}>

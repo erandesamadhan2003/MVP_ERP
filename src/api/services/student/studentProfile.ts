@@ -1,57 +1,91 @@
-import { StudentProfileMaster } from '../../../types/student/studentProfile.types';
-import { api } from '../../api';
-
-export const GetStudentDetails = async ( UserID: number, ApplicationToken: string) => {
-    if (!UserID || !ApplicationToken) {
-        throw new Error('UserID and ApplicationToken are required');
-    }
-
-    // Correct endpoint: /Admission/Registration/GetStudentDetails
-    const url = '/Admission/Registration/GetStudentDetails';
-    const params = { UserID, ApplicationToken };
-    
-    const response = await api.get(url, { params });
+import { api } from "../../api";
+import { DocumentUploadPayload } from "../../../types/student/studentProfile.types"; 
+import { buildDocumentFormData } from "../../../utils/constant"; 
+// =============================
+// SIMPLE GET APIs
+// =============================
+export const GetStudentDetails = async (UserID: number, ApplicationToken: string) => {
+    const response = await api.get("/Admission/Registration/GetStudentDetails", {
+        params: { UserID, ApplicationToken }
+    });
     return response.data;
 };
 
-export const GetCoursesOnSection = async ( SectionID: number) => {
-    try {
-        const response = await api.get(`/Admission/Registration/GetCourseOnSection`,{
-            params: { SectionID },
-        });
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-}
+export const GetCoursesOnSection = async (SectionID: number) => {
+    const response = await api.get("/Admission/Registration/GetCourseOnSection", {
+        params: { SectionID }
+    });
+    return response.data;
+};
 
-export const GetClassOnCourse = async ( CourseID: number) => {
-    try {
-        const response = await api.get(`/Admission/Registration/GetClassOnCourse`,{
-            params: { CourseID },
-        });
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+export const GetClassOnCourse = async (CourseID: number) => {
+    const response = await api.get("/Admission/Registration/GetClassOnCourse", {
+        params: { CourseID }
+    });
+    return response.data;
 };
 
 export const GetStudentProfileSelectList = async () => {
-    try {
-        const response = await api.get(`/Admission/Registration/GetStudentProfileSelectList`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};          
+    const response = await api.get("/Admission/Registration/GetStudentProfileSelectList");
+    return response.data;
+};
 
-export const UpdateStudentProfile = async (payload: StudentProfileMaster) => {
-    try {
-        const response = await api.post('/Admission/Registration/AddMeritRegistrations', 
-            payload
-        );
-    } catch (error) {
-        throw error;
-    }
-}
+export const UpdateStudentProfile = async (payload: any) => {
+    const response = await api.post("/Admission/Registration/AddMeritRegistrations", payload);
+    return response.data;
+};
 
+export const GetStudentDocuments = async (UserID: number) => {
+    const response = await api.get("/Admission/Registration/GetStudentDocuments", {
+        params: { UserID }
+    });
+    return response.data;
+};
+
+// =============================
+// DOCUMENT UPLOAD APIS
+// =============================
+export const UpdateStudentPhoto = async (payload: DocumentUploadPayload) => {
+    const formData = buildDocumentFormData(payload, "student_photo.jpg", "image/jpeg");
+
+    const response = await api.post("/Admission/Registration/UpdateStudentPhoto", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+};
+
+export const UpdateStudentSign = async (payload: DocumentUploadPayload) => {
+    const formData = buildDocumentFormData(payload, "signature.jpg", "image/jpeg");
+
+    const response = await api.post("/Admission/Registration/UpdateStudentSign", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+};
+
+export const UpdateStudentPassCertificate = async (payload: DocumentUploadPayload) => {
+    const formData = buildDocumentFormData(payload, "marksheet.pdf", "application/pdf");
+
+    const response = await api.post("/Admission/Registration/UpdateStudentPassCertificate", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+};
+
+export const UpdateStudentLCTCCertificate = async (payload: DocumentUploadPayload) => {
+    const formData = buildDocumentFormData(payload, "lc_cert.pdf", "application/pdf");
+
+    const response = await api.post("/Admission/Registration/UpdateStudentLCTCCertificate", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+};
+
+export const UpdateStudentCasteCertificate = async (payload: DocumentUploadPayload) => {
+    const formData = buildDocumentFormData(payload, "caste_cert.pdf", "application/pdf");
+
+    const response = await api.post("/Admission/Registration/UpdateStudentCasteCertificate", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+};

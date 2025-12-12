@@ -107,124 +107,6 @@ export interface StudentProfileApiResponse {
     ResponseData: StudentProfileResponseData;
 }
 
-
-// // Select List Types
-// export interface TalukaItem {
-//     Taluka: string;
-// }
-
-// export interface BloodTypeItem {
-//     BloodTypeID: number;
-//     BloodGroup: string;
-// }
-
-// export interface CategoryItem {
-//     // Add category properties based on actual response
-//     [key: string]: any;
-// }
-
-// export interface GenderItem {
-//     Gender: string;
-//     GenderName: string;
-//     AddBy: string | null;
-//     AddByTime: string | null;
-//     EditBy: string | null;
-//     EditByTime: string | null;
-// }
-
-// export interface HandicapTypeItem {
-//     // Add handicap type properties
-//     [key: string]: any;
-// }
-
-// export interface InstituteItem {
-//     CCode: number;
-//     InstituteName: string;
-//     Address: string | null;
-// }
-
-// export interface LanguageMediumItem {
-//     PaperLanguageMediumID: number;
-//     Medium: string;
-//     AddBy: string | null;
-//     AddByTime: string | null;
-//     EditBy: string | null;
-//     EditByTime: string | null;
-// }
-
-// export interface MeritPrincipalSubjectItem {
-//     PrincipalSubjectID: number;
-//     PrincipalSubject: string;
-// }
-
-// export interface MeritSubjectTypeItem {
-//     SubjectTypeID: number;
-//     SubjectType: string;
-// }
-
-// export interface MinorityItem {
-//     MinorityID: number;
-//     Minority: string;
-// }
-
-// export interface PrevSectionItem {
-//     SectionID: number;
-//     SectionName: string;
-//     IsSelected: boolean;
-// }
-
-// export interface ReligionItem {
-//     ReligionID: number;
-//     ReligionName: string;
-//     AddBy: string | null;
-//     AddByTime: string | null;
-//     EditBy: string | null;
-//     EditByTime: string | null;
-// }
-
-// export interface SpecialCategoryTypeItem {
-//     SpecialCategoryID: number;
-//     SpecialCategory: string;
-//     AddBy: string | null;
-//     AddByTime: string | null;
-//     EditBy: string | null;
-//     EditByTime: string | null;
-// }
-
-// export interface SportsItem {
-//     SportsID: number;
-//     SportName: string;
-//     AddBy: string | null;
-//     AddByTime: string | null;
-//     EditBy: string | null;
-//     EditByTime: string | null;
-// }
-
-// export interface StudentProfileSelectListData {
-//     TalukaList: TalukaItem[];
-//     BloodTypeList: BloodTypeItem[];
-//     CategoryList: CategoryItem[];
-//     GenderList: GenderItem[];
-//     HandiCapTypeList: HandicapTypeItem[];
-//     InstituteList: InstituteItem[];
-//     LanguageMediumList: LanguageMediumItem[];
-//     MeritPrincipalSubjectList: MeritPrincipalSubjectItem[];
-//     MeritSubjectTypeList: MeritSubjectTypeItem[];
-//     MinorityList: MinorityItem[];
-//     PrevClassList: any[] | null;
-//     PrevCourseList: any[] | null;
-//     PrevSectionList: PrevSectionItem[];
-//     ReligionList: ReligionItem[];
-//     SpecialCategoryTypeList: SpecialCategoryTypeItem[];
-//     SportsList: SportsItem[];
-// }
-
-// export interface StudentProfileSelectListResponse {
-//     ResponseCode: number;
-//     Message: string | null;
-//     ResponseData: StudentProfileSelectListData;
-// }
-
 export interface StudentState {
     profile: StudentProfileResponseData | null;
     selectLists: SelectLists | null;
@@ -232,4 +114,81 @@ export interface StudentState {
     selectListsLoading: boolean;
     error: string | null;
     selectListsError: string | null;
+}
+
+export interface StudentProfileUpdateInterface {
+    MeritStudentInfoID: number;
+    MeritStudentMasterID: string;
+    URNNO: number;
+    LastName: string;
+    FirstName: string;
+    FatherName: string;
+    MotherName: string;
+    GrandFatherName: string;
+    UserLogin: string;
+    PasswordHash: string;
+    DateOfBirth: string; // ISO string
+    BirthPlace: string;
+    BirthCity: string;
+    Gender: string;
+    BloodTypeID: number;
+    AdharID: string;
+    ReligionID: number;
+    ReligionCast: string;
+    CategoryCode: number;
+    MinorityID: number;
+    MobileNo: string | null;
+    PhoneNo: string | null;
+    Email1: string;
+    Email2: string;
+    PAddress: string;
+    PTaluka: string;
+    PDistrict: string;
+    PState: string;
+    PPinCode: string;
+    CAddress: string | null;
+    CTaluka: string | null;
+    CDistrict: string | null;
+    CState: string | null;
+    CPinCode: string;
+    PrevBoardUniversityName: string;
+    PrevCollegeName: string;
+    PrevPassingYear: string;
+    PrevSectionID: number;
+    PrevCourseID: number;
+    PrevClassID: number;
+    PrevGrade: string | null;
+    PrevMarks: number;
+    PrevGroupSubjectMarks: number | null;
+    PrevOutOfGroupSubjectMarks: number | null;
+    PrevGroupSubjectPerc: number | null;
+    SubjectTypeID: number | null;
+    PrincipalSubjectID: number | null;
+    PrevOutOfMarks: number | null;
+    PrevPercentage: number;
+    PrevSeatNumber: string;
+    ISSport: boolean;
+    SportId: number;
+    ISHandicap: boolean;
+    HandicapId: number;
+    ISSpCategory: boolean;
+    SpecialCategoryId: number;
+    MotherInstitute: boolean;
+}
+
+export interface UploadFileType {
+    uri: string;
+    type?: string;
+    name?: string;
+}
+
+export interface DocumentUploadPayload {
+    MeritStudentMasterID: number;
+    MeritStudentInfoID?: number;
+    ApplicationToken: string;
+    AddBy: number;
+    AddByTime: string;
+    EditBy: number;
+    EditByTime: string;
+    file: UploadFileType | any;
 }

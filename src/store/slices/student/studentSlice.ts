@@ -1,138 +1,203 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { 
-    StudentState, 
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+    GetStudentDetails,
+    GetStudentProfileSelectList,
+    UpdateStudentProfile,
+    UpdateStudentPhoto,
+    UpdateStudentSign,
+    UpdateStudentPassCertificate,
+    UpdateStudentLCTCCertificate,
+    UpdateStudentCasteCertificate,
+    GetStudentDocuments
+} from "../../../api/services/student/studentProfile";
+
+import {
+    StudentState,
     StudentProfileResponseData,
     StudentProfileMaster,
     StudentProfileDocument,
-} from '../../../types/student/studentProfile.types';
-import { GetStudentDetails, GetStudentProfileSelectList } from '../../../api/services/student/studentProfile';
-import { SelectLists } from '../../../types/student/SelectList.types';
+    DocumentUploadPayload
+} from "../../../types/student/studentProfile.types";
 
-const InitailState: StudentState = {
-    profile: null,
-    selectLists: null,
-    loading: false,
-    selectListsLoading: false,
-    error: null,
-    selectListsError: null,
-};
+import { SelectLists } from "../../../types/student/SelectList.types";
+import { extractError } from "../../../utils/constant";
+
+const createUploadThunk = (name: string, apiCall: any, failMsg: string) =>
+    createAsyncThunk<any, DocumentUploadPayload, { rejectValue: string }>(
+        `student/${name}`,
+        async (payload, { rejectWithValue }) => {
+            try {
+                const response = await apiCall(payload);
+                if (response?.ResponseCode === 1) return response;
+                return rejectWithValue(response?.Message || failMsg);
+            } catch (error) {
+                return rejectWithValue(extractError(error, failMsg));
+            }
+        }
+    );
+
+// =============================================================
+// THUNKS — FETCH & UPDATE
+// =============================================================
 
 export const StudentDetails = createAsyncThunk<
     StudentProfileResponseData,
     { UserID: number; ApplicationToken: string },
     { rejectValue: string }
->(
-    'student/fetchDetails',
-    async ({ UserID, ApplicationToken }, { rejectWithValue }) => {
-        try {
-            if (!UserID || !ApplicationToken) {
-                return rejectWithValue('UserID and ApplicationToken are required');
-            }
-            const response = await GetStudentDetails(UserID, ApplicationToken);
-            if (response?.ResponseCode === 1 && response?.ResponseData) {
-                return response.ResponseData;
-            }
-            return rejectWithValue(response?.Message || 'Failed to fetch student details');
-        } catch (error: any) {
-            const errorMsg = error?.response?.data?.Message || 
-                           error?.message || 
-                           'Failed to fetch student details';
-            return rejectWithValue(errorMsg);
-        }
+>("student/fetchDetails", async ({ UserID, ApplicationToken }, { rejectWithValue }) => {
+    try {
+        const res = await GetStudentDetails(UserID, ApplicationToken);
+        if (res?.ResponseCode === 1) return res.ResponseData;
+        return rejectWithValue(res?.Message || "Failed to fetch student details");
+    } catch (error) {
+        return rejectWithValue(extractError(error, "Failed to fetch student details"));
     }
-);
+});
 
 export const FetchStudentProfileSelectList = createAsyncThunk<
     SelectLists,
     void,
     { rejectValue: string }
->(
-    'student/fetchSelectLists',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await GetStudentProfileSelectList();
-            if (response.ResponseCode === 1 && response.ResponseData) {
-                return response.ResponseData;
-            }
-            return rejectWithValue(response.Message || 'Failed to fetch select lists');
-        } catch (error: any) {
-            return rejectWithValue(error?.message || 'Failed to fetch select lists');
-        }
+>("student/fetchSelectLists", async (_, { rejectWithValue }) => {
+    try {
+        const res = await GetStudentProfileSelectList();
+        if (res.ResponseCode === 1) return res.ResponseData;
+        return rejectWithValue(res.Message || "Failed to fetch select lists");
+    } catch (error) {
+        return rejectWithValue(extractError(error, "Failed to fetch select lists"));
     }
+});
+
+export const UpdateStudentProfileData = createAsyncThunk<
+    any,
+    any,
+    { rejectValue: string }
+>("student/updateProfile", async (payload, { rejectWithValue }) => {
+    try {
+        return await UpdateStudentProfile(payload);
+    } catch (error) {
+        return rejectWithValue(extractError(error, "Failed to update student profile"));
+    }
+});
+
+// =============================================================
+// DOCUMENT UPLOAD THUNKS 
+// =============================================================
+
+export const UploadStudentPhoto = createUploadThunk(
+    "uploadPhoto",
+    UpdateStudentPhoto,
+    "Failed to upload photo"
 );
 
+export const UploadStudentSign = createUploadThunk(
+    "uploadSign",
+    UpdateStudentSign,
+    "Failed to upload signature"
+);
+
+export const UploadPassCertificate = createUploadThunk(
+    "uploadPassCert",
+    UpdateStudentPassCertificate,
+    "Failed to upload mark sheet"
+);
+
+export const UploadLCTCCertificate = createUploadThunk(
+    "uploadLCTC",
+    UpdateStudentLCTCCertificate,
+    "Failed to upload LC/TC certificate"
+);
+
+export const UploadCasteCertificate = createUploadThunk(
+    "uploadCaste",
+    UpdateStudentCasteCertificate,
+    "Failed to upload caste certificate"
+);
+
+export const FetchStudentDocuments = createAsyncThunk<
+    StudentProfileResponseData,
+    number,
+    { rejectValue: string }
+>("student/fetchDocuments", async (UserID, { rejectWithValue }) => {
+    try {
+        const res = await GetStudentDocuments(UserID);
+        if (res.ResponseCode === 1) return res.ResponseData;
+        return rejectWithValue(res.Message || "Failed to fetch documents");
+    } catch (error) {
+        return rejectWithValue(extractError(error, "Failed to fetch documents"));
+    }
+});
+
+// =============================================================
+// INITIAL STATE
+// =============================================================
+
+const initialState: StudentState = {
+    profile: null,
+    loading: false,
+    error: null,
+    selectListsLoading: false,
+    selectListsError: null,
+    selectLists: null,
+};
+
+// =============================================================
+// SLICE
+// =============================================================
+
 export const studentSlice = createSlice({
-    name: 'student',
-    initialState: InitailState,
+    name: "student",
+    initialState,
     reducers: {
-        // Update a single field in meritRegistrationMaster
         updateMasterField: (
-            state, 
+            state,
             action: PayloadAction<{ field: keyof StudentProfileMaster; value: any }>
         ) => {
             if (state.profile?.meritRegistrationMaster) {
-                state.profile.meritRegistrationMaster[action.payload.field] = action.payload.value as never;
+                state.profile.meritRegistrationMaster[action.payload.field] =
+                    action.payload.value as never;
             }
         },
-        
-        // Update multiple fields in meritRegistrationMaster
-        updateMasterFields: (
-            state, 
-            action: PayloadAction<Partial<StudentProfileMaster>>
-        ) => {
-            if (state.profile?.meritRegistrationMaster) {
-                state.profile.meritRegistrationMaster = {
-                    ...state.profile.meritRegistrationMaster,
-                    ...action.payload,
-                };
-            }
-        },
-        
-        // Update entire meritRegistrationMaster
-        updateMaster: (
-            state, 
-            action: PayloadAction<StudentProfileMaster>
-        ) => {
-            if (state.profile) {
-                state.profile.meritRegistrationMaster = action.payload;
-            }
-        },
-        
-        // Update a single document
-        updateDocument: (
-            state, 
-            action: PayloadAction<{ index: number; document: Partial<StudentProfileDocument> }>
-        ) => {
-            if (state.profile?.meritRegistrationMasterDocuments[action.payload.index]) {
-                state.profile.meritRegistrationMasterDocuments[action.payload.index] = {
-                    ...state.profile.meritRegistrationMasterDocuments[action.payload.index],
-                    ...action.payload.document,
-                };
-            }
-        },
-        
-        // Update all documents
+
         updateDocuments: (
-            state, 
+            state,
             action: PayloadAction<StudentProfileDocument[]>
         ) => {
             if (state.profile) {
                 state.profile.meritRegistrationMasterDocuments = action.payload;
             }
         },
-        
-        // Reset profile
+
         resetProfile: (state) => {
             state.profile = null;
             state.error = null;
         },
-        
-        // Clear error
-        clearError: (state) => {
-            state.error = null;
-        },
     },
+
     extraReducers: (builder) => {
+        const loadingThunks = [
+            UpdateStudentProfileData,
+            UploadStudentPhoto,
+            UploadStudentSign,
+            UploadPassCertificate,
+            UploadLCTCCertificate,
+            UploadCasteCertificate,
+        ];
+
+        loadingThunks.forEach((thunk) => {
+            builder.addCase(thunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            });
+            builder.addCase(thunk.fulfilled, (state) => {
+                state.loading = false;
+            });
+            builder.addCase(thunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            });
+        });
+
         builder
             .addCase(StudentDetails.pending, (state) => {
                 state.loading = true;
@@ -148,7 +213,6 @@ export const studentSlice = createSlice({
             })
             .addCase(FetchStudentProfileSelectList.pending, (state) => {
                 state.selectListsLoading = true;
-                state.selectListsError = null;
             })
             .addCase(FetchStudentProfileSelectList.fulfilled, (state, action) => {
                 state.selectListsLoading = false;
@@ -157,18 +221,21 @@ export const studentSlice = createSlice({
             .addCase(FetchStudentProfileSelectList.rejected, (state, action) => {
                 state.selectListsLoading = false;
                 state.selectListsError = action.payload as string;
+            })
+            .addCase(FetchStudentDocuments.fulfilled, (state, action) => {
+                if (state.profile) {
+                    state.profile.meritRegistrationMasterDocuments =
+                        action.payload.meritRegistrationMasterDocuments;
+                }
             });
-    },
+    }
 });
 
-export const { 
-    updateMasterField, 
-    updateMasterFields, 
-    updateMaster,
-    updateDocument,
+// Export reducers
+export const {
+    updateMasterField,
     updateDocuments,
-    resetProfile,
-    clearError 
+    resetProfile
 } = studentSlice.actions;
 
 export default studentSlice.reducer;

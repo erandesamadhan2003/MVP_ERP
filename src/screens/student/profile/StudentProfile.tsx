@@ -4,6 +4,7 @@ import {
     TouchableOpacity,
     KeyboardAvoidingView,
     Platform,
+    Alert,
 } from 'react-native';
 import {
     Text,
@@ -13,6 +14,9 @@ import {
     Button,
     ActivityIndicator,
 } from 'react-native-paper';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store/store';
+import { UpdateStudentProfileData } from '../../../store/slices/student/studentSlice';
 import { useStudentProfile } from '../../../hooks/student/useStudentProfile';
 import {
     BasicDetailsTab,
@@ -21,10 +25,12 @@ import {
     DocumentDetailsTab,
 } from '../../../components/student/Profile/TabComponents';
 import { profileStyles } from './profileStyles';
+import { mapProfileToUpdatePayload } from './utils/profileHelpers';
 
 type TabType = 'BASIC' | 'CONTACT' | 'QUALIFICATION' | 'DOCUMENT';
 
 export default function StudentProfile({ navigation }: any) {
+    const dispatch = useDispatch<AppDispatch>();
     const {
         user,
         profile,
@@ -36,6 +42,7 @@ export default function StudentProfile({ navigation }: any) {
         retryFetch,
     } = useStudentProfile();
     const [activeTab, setActiveTab] = useState<TabType>('BASIC');
+    const [isSaving, setIsSaving] = useState(false);
 
     if (!user) {
         return (
@@ -46,6 +53,29 @@ export default function StudentProfile({ navigation }: any) {
             </View>
         );
     }
+
+    const handleSaveProfile = async () => {
+        if (!profileData) {
+            Alert.alert('Error', 'No profile data available to save');
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+
+            // Map the Redux store data to StudentProfileUpdateInterface
+            const updatePayload = mapProfileToUpdatePayload(profileData);
+
+            await dispatch(UpdateStudentProfileData(updatePayload)).unwrap();
+
+            Alert.alert('Success', 'Profile updated successfully');
+        } catch (error: any) {
+            const errorMsg = error?.message || error || 'Failed to update profile';
+            Alert.alert('Error', errorMsg);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -100,8 +130,8 @@ export default function StudentProfile({ navigation }: any) {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={profileStyles.container}
         >
-            {/* Header with back button */}
-            <View style={profileStyles.header}>
+            {/* Header with back button and Save button */}
+            <View style={[profileStyles.header, {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}]}>
                 <IconButton
                     icon="arrow-left"
                     size={24}
@@ -109,8 +139,16 @@ export default function StudentProfile({ navigation }: any) {
                     iconColor="#1649b2"
                 />
                 <Text style={profileStyles.headerTitle}>Student Profile</Text>
+                <Button
+                    mode="contained-tonal"
+                    onPress={handleSaveProfile}
+                    loading={isSaving}
+                    disabled={isSaving || isLoading}
+                >
+                    Update
+                </Button>
             </View>
-
+        
             <Divider />
 
             {/* Error Message */}

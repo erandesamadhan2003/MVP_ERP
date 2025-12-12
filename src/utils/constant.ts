@@ -103,3 +103,42 @@ export const defaultLoginPayload = () => ({
 });
 
 
+import { DocumentUploadPayload } from "../types/student/studentProfile.types";
+
+export const buildDocumentFormData = (
+    payload: DocumentUploadPayload,
+    defaultFileName: string,
+    defaultMime: string
+) => {
+    const formData = new FormData();
+
+    const commonFields: Record<string, any> = {
+        MeritStudentMasterID: payload.MeritStudentMasterID,
+        MeritStudentInfoID: payload.MeritStudentInfoID ?? "",
+        ApplicationToken: payload.ApplicationToken,
+        AddBy: payload.AddBy,
+        AddByTime: payload.AddByTime,
+        EditBy: payload.EditBy,
+        EditByTime: payload.EditByTime,
+    };
+
+    Object.entries(commonFields).forEach(([key, value]) => {
+        if (value !== undefined) formData.append(key, value.toString());
+    });
+
+    formData.append("file", {
+        uri: payload.file.uri,
+        type: payload.file.type || defaultMime,
+        name: payload.file.name || defaultFileName,
+    } as any);
+
+    return formData;
+};
+
+export const extractError = (error: any, fallback: string) => {
+    return (
+        error?.response?.data?.Message ||
+        error?.message ||
+        fallback
+    );
+};
