@@ -204,9 +204,22 @@ export const BasicDetailsTab = ({
                             profileData,
                             selectLists,
                         )}
+                        options={
+                            selectLists?.CategoryList && selectLists.CategoryList.length > 0
+                                ? selectLists.CategoryList.map((c: any) => ({
+                                      label: c.CategoryName || c.Category || 'Unknown',
+                                      value: c.CategoryCode,
+                                  }))
+                                : [
+                                      { label: 'General', value: 1 },
+                                      { label: 'OBC', value: 2 },
+                                      { label: 'SC', value: 3 },
+                                      { label: 'ST', value: 4 },
+                                      { label: 'VJNT', value: 5 },
+                                      { label: 'SEBC', value: 6 },
+                                  ]
+                        }
                         field="CategoryCode"
-                        listKey="CategoryList"
-                        selectLists={selectLists}
                     />
 
                     <DropdownField
@@ -264,12 +277,19 @@ export const BasicDetailsTab = ({
                         )}
                         options={[
                             { label: 'NO', value: 0 },
-                            ...(selectLists?.HandiCapTypeList?.map(
-                                (h: any) => ({
-                                    label: h.HandicapType || 'YES',
+                            ...(selectLists?.HandiCapTypeList
+                                ?.filter((h: any, index: number, self: any[]) => {
+                                    // Filter to ensure unique values (by HandicapId)
+                                    return (
+                                        self.findIndex(
+                                            (item: any) => item.HandicapId === h.HandicapId,
+                                        ) === index
+                                    );
+                                })
+                                .map((h: any) => ({
+                                    label: h.HandicapType || `Handicap Type ${h.HandicapId}`,
                                     value: h.HandicapId,
-                                }),
-                            ) || []),
+                                })) || []),
                         ]}
                         field="HandicapId"
                         additionalFields={[
@@ -590,7 +610,12 @@ export const DocumentDetailsTab = ({
                     break;
             }
         } catch (error: any) {
-            Alert.alert('Error', error ? String(error) : `Failed to upload ${type}`);
+            console.error(`Upload error for ${type}:`, error);
+            const errorMessage = error?.response?.data?.Message 
+                || error?.message 
+                || error?.toString() 
+                || `Failed to upload ${type}`;
+            Alert.alert('Error', errorMessage);
         } finally {
             setUploading(false);
         }

@@ -19,6 +19,7 @@ import {
 import { Register as RegisterService } from '../../api/services/auth/authService';
 import { StudentRegisterPayload } from '../../types/auth/auth.types';
 import { validateRegister } from '../../utils/constant';
+import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 
 export default function RegisterScreen({ navigation }: any) {
   const [formData, setFormData] = useState({
@@ -84,14 +85,15 @@ export default function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <SafeAreaWrapper>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
       >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Header */}
         <View style={styles.headerContainer}>
           <TouchableOpacity
@@ -291,7 +293,8 @@ export default function RegisterScreen({ navigation }: any) {
       >
         {snackbarMessage}
       </Snackbar>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaWrapper>
   );
 }
 

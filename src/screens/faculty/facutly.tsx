@@ -4,6 +4,7 @@ import { Text, Button, Avatar } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { logout, LogoutUser } from '../../store/slices/auth/authSlice';
+import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 
 export default function FacultyScreen({ navigation }: any) {
   const dispatch = useDispatch<AppDispatch>();
@@ -15,18 +16,20 @@ export default function FacultyScreen({ navigation }: any) {
   }, [user]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Avatar.Text size={80} label={(user?.FullName || 'F').slice(0,1)} style={{marginBottom:12}} />
-      <Text style={styles.title}>{user?.FullName || user?.UserName || 'Faculty'}</Text>
-      <Text style={styles.info}>Email: {user?.Email || 'N/A'}</Text>
-      <Text style={styles.info}>Mobile: {user?.MobileNo || 'N/A'}</Text>
-      <Text style={styles.info}>Organization: {user?.OrganizationName || 'N/A'}</Text>
-      <Text style={styles.info}>Institute: {user?.InstituteName || 'N/A'}</Text>
+    <SafeAreaWrapper>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Avatar.Text size={80} label={(user?.FullName || 'F').slice(0,1)} style={{marginBottom:12}} />
+        <Text style={styles.title}>{user?.FullName || user?.UserName || 'Faculty'}</Text>
+        <Text style={styles.info}>Email: {user?.Email || 'N/A'}</Text>
+        <Text style={styles.info}>Mobile: {user?.MobileNo || 'N/A'}</Text>
+        <Text style={styles.info}>Organization: {user?.OrganizationName || 'N/A'}</Text>
+        <Text style={styles.info}>Institute: {user?.InstituteName || 'N/A'}</Text>
 
-      <Button mode="contained" onPress={() => { dispatch(LogoutUser()); navigation.reset({index:0, routes:[{name:'Home'}]}); }} style={{marginTop:20}}>
-        Logout
-      </Button>
-    </ScrollView>
+        <Button mode="contained" onPress={() => { dispatch(LogoutUser()); navigation.reset({index:0, routes:[{name:'Home'}]}); }} style={{marginTop:20}}>
+          Logout
+        </Button>
+      </ScrollView>
+    </SafeAreaWrapper>
   );
 }
 
