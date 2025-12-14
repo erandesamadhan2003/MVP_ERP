@@ -53,11 +53,8 @@ export const useStudentProfile = () => {
                 return;
             }
 
-            // Get ApplicationToken from user object
-            // The UserData interface shows ApplicationToken is a direct property
             const applicationToken = user.ApplicationToken || token;
 
-            // Validate ApplicationToken exists and is valid
             if (
                 !applicationToken ||
                 typeof applicationToken !== 'string' ||
