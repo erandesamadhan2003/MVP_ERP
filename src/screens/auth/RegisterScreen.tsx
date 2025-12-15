@@ -23,6 +23,7 @@ import { LoginUser, setUser } from '../../store/slices/auth/authSlice';
 import { Register as RegisterService } from '../../api/services/auth/authService';
 import { StudentRegisterPayload, LoginPayload } from '../../types/auth/auth.types';
 import { validateRegister, getIPAddress } from '../../utils/constant';
+
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 
 export default function RegisterScreen({ navigation }: any) {

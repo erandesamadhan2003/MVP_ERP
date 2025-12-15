@@ -1,8 +1,9 @@
 import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider as PaperProvider } from "react-native-paper";
+import { Provider as PaperProvider, MD3LightTheme } from "react-native-paper";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StatusBar } from 'react-native';
 
 import HomeScreen from "./src/screens/HomeScreen";
 import LoginScreen from './src/screens/auth/LoginScreen';
@@ -36,8 +37,9 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <SafeAreaProvider>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
       <Provider store={store}>
-        <PaperProvider>
+        <PaperProvider theme={MD3LightTheme}>
           <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Home" component={HomeScreen} />
