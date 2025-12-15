@@ -18,6 +18,7 @@ import {
 
 import { NewsAndAnnouncementsService } from '../api/services/newsAndAnnouncements/newsAndAnnouncementsService';
 import { NewsAnnouncement } from '../types/newsAndAnnouncements.types';
+import SafeAreaWrapper from '../components/SafeAreaWrapper';
 
 const ITEM_HEIGHT = 82; // approx height per news item (adjust if needed)
 const VISIBLE_HEIGHT = 450; // height of the news viewport
@@ -114,7 +115,8 @@ export default function HomeScreen({ navigation }: any) {
   const duplicatedNews = [...newsList, ...newsList];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+    <SafeAreaWrapper>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <Image source={require('../assets/logo.png')} style={styles.logo} />
@@ -162,7 +164,8 @@ export default function HomeScreen({ navigation }: any) {
           </Card.Content>
         </Card>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaWrapper>
   );
 }
 

@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { logout, LogoutUser } from '../../store/slices/auth/authSlice';
 import { MenuItem } from '../../types/auth/auth.types';
+import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 
 export default function StudentScreen({ navigation }: any) {
     const dispatch = useDispatch<AppDispatch>();
@@ -133,7 +134,7 @@ export default function StudentScreen({ navigation }: any) {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaWrapper style={styles.container}>
             {/* Header with User Info and Logout */}
             <View style={styles.headerCard}>
                 <View style={styles.headerTop}>
@@ -231,7 +232,7 @@ export default function StudentScreen({ navigation }: any) {
                                     ]}
                                 >
                                     <Avatar.Icon
-                                        size={48}
+                                        size={40}
                                         icon="book-open-page-variant"
                                         style={{ backgroundColor: '#ffe0e6' }}
                                         color="#ff4d6d"
@@ -239,7 +240,7 @@ export default function StudentScreen({ navigation }: any) {
                                     <Text style={styles.statGridCount}>
                                         {lecturesCount}
                                     </Text>
-                                    <Text style={styles.statGridLabel}>
+                                    <Text style={styles.statGridLabel} numberOfLines={1}>
                                         Lectures
                                     </Text>
                                     <Button
@@ -249,7 +250,7 @@ export default function StudentScreen({ navigation }: any) {
                                             navigation.navigate('Lectures')
                                         }
                                         style={styles.statGridButton}
-                                        labelStyle={{ fontSize: 10 }}
+                                        labelStyle={{ fontSize: 9 }}
                                     >
                                         View
                                     </Button>
@@ -268,7 +269,7 @@ export default function StudentScreen({ navigation }: any) {
                                     ]}
                                 >
                                     <Avatar.Icon
-                                        size={48}
+                                        size={40}
                                         icon="clipboard-text"
                                         style={{ backgroundColor: '#d9e4ff' }}
                                         color="#4d79ff"
@@ -276,7 +277,7 @@ export default function StudentScreen({ navigation }: any) {
                                     <Text style={styles.statGridCount}>
                                         {homeworkCount}
                                     </Text>
-                                    <Text style={styles.statGridLabel}>
+                                    <Text style={styles.statGridLabel} numberOfLines={1}>
                                         Homework
                                     </Text>
                                     <Button
@@ -286,7 +287,7 @@ export default function StudentScreen({ navigation }: any) {
                                             navigation.navigate('Homework')
                                         }
                                         style={styles.statGridButton}
-                                        labelStyle={{ fontSize: 10 }}
+                                        labelStyle={{ fontSize: 9 }}
                                     >
                                         View
                                     </Button>
@@ -305,7 +306,7 @@ export default function StudentScreen({ navigation }: any) {
                                     ]}
                                 >
                                     <Avatar.Icon
-                                        size={48}
+                                        size={40}
                                         icon="clipboard-check-outline"
                                         style={{ backgroundColor: '#ffe8c2' }}
                                         color="#ff9f1a"
@@ -313,7 +314,7 @@ export default function StudentScreen({ navigation }: any) {
                                     <Text style={styles.statGridCount}>
                                         {examCount}
                                     </Text>
-                                    <Text style={styles.statGridLabel}>
+                                    <Text style={styles.statGridLabel} numberOfLines={1}>
                                         Exams
                                     </Text>
                                     <Button
@@ -323,7 +324,7 @@ export default function StudentScreen({ navigation }: any) {
                                             navigation.navigate('Exams')
                                         }
                                         style={styles.statGridButton}
-                                        labelStyle={{ fontSize: 10 }}
+                                        labelStyle={{ fontSize: 9 }}
                                     >
                                         View
                                     </Button>
@@ -426,10 +427,10 @@ export default function StudentScreen({ navigation }: any) {
         >
           View Redux State (Debug)
         </Button> */}
-            </ScrollView>
-        </View>
-    );
-}
+             </ScrollView>
+        </SafeAreaWrapper>
+     );
+ }
 
 const styles = StyleSheet.create({
     container: {
@@ -579,41 +580,44 @@ const styles = StyleSheet.create({
     },
     statsGrid: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
+        flexWrap: 'nowrap',
+        gap: 8,
         justifyContent: 'space-between',
         marginVertical: 50,
+        paddingHorizontal: 4,
     },
     statGridItem: {
-        width: '31%',
-        aspectRatio: 0.85,
+        flex: 1,
+        minWidth: 0,
+        maxWidth: '33.33%',
     },
     statGridCard: {
         flex: 1,
         borderRadius: 12,
-        borderLeftWidth: 5,
-        padding: 12,
+        borderLeftWidth: 4,
+        padding: 10,
         alignItems: 'center',
         justifyContent: 'center',
         elevation: 2,
+        minHeight: 160,
     },
     statGridCount: {
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: '900',
         color: '#111',
-        marginTop: 8,
+        marginTop: 6,
     },
     statGridLabel: {
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: '600',
         color: '#555',
         marginTop: 4,
         textAlign: 'center',
     },
     statGridButton: {
-        marginTop: 8,
+        marginTop: 6,
         alignSelf: 'stretch',
-        minHeight: 32,
+        minHeight: 30,
     },
     /* Info Section Styles */
     infoSectionTitle: {

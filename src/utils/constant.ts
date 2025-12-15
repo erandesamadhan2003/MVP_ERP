@@ -51,19 +51,22 @@ export const validateLogin = (payload: { UserName?: string; Password?: string })
 export const validateRegister = (formData: Record<string, any>) => {
     const errors: Record<string, string> = {};
     const email = (formData?.email || '').trim();
+    const confirmEmail = (formData?.confirmEmail || '').trim();
     const password = (formData?.password || '').toString();
     const confirm = (formData?.confirmPassword || '').toString();
     const mobile = (formData?.mobileNo || '').toString().replace(/\D/g, '');
     const adhar = (formData?.adharID || '').toString().replace(/\D/g, '');
 
-    if (!formData.userName || !formData.userName.trim()) {
-        errors.userName = 'Username is required';
-    }
-
     if (!email) {
         errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errors.email = 'Enter a valid email';
+    }
+
+    if (!confirmEmail) {
+        errors.confirmEmail = 'Confirm email is required';
+    } else if (email !== confirmEmail) {
+        errors.confirmEmail = 'Emails do not match';
     }
 
     if (!mobile) {

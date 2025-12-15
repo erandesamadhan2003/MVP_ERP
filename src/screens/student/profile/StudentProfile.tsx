@@ -6,6 +6,7 @@ import {
     Platform,
     Alert,
 } from 'react-native';
+import SafeAreaWrapper from '../../../components/SafeAreaWrapper';
 import {
     Text,
     Divider,
@@ -126,12 +127,13 @@ export default function StudentProfile({ navigation }: any) {
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={profileStyles.container}
-        >
-            {/* Header with back button and Save button */}
-            <View style={[profileStyles.header, {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}]}>
+        <SafeAreaWrapper style={profileStyles.safeArea}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={profileStyles.container}
+            >
+                {/* Header with back button and Save button */}
+                <View style={[profileStyles.header, {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}]}>
                 <IconButton
                     icon="arrow-left"
                     size={24}
@@ -254,8 +256,9 @@ export default function StudentProfile({ navigation }: any) {
 
             <Divider />
 
-            {/* Tab Content */}
-            <View style={profileStyles.tabContent}>{renderTabContent()}</View>
-        </KeyboardAvoidingView>
+                {/* Tab Content */}
+                <View style={profileStyles.tabContent}>{renderTabContent()}</View>
+            </KeyboardAvoidingView>
+        </SafeAreaWrapper>
     );
 }

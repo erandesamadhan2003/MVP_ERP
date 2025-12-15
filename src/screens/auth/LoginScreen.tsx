@@ -22,6 +22,7 @@ import { api } from '../../api/api';
 import { LoginPayload } from '../../types/auth/auth.types';
 import { AppDispatch, RootState } from '../../store/store';
 import { getIPAddress, validateLogin, defaultLoginPayload } from '../../utils/constant';
+import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 
 export default function LoginScreen({ navigation }: any) {
   const dispatch = useDispatch<AppDispatch>();
@@ -96,14 +97,15 @@ export default function LoginScreen({ navigation }: any) {
   }, [isAuthenticated, user]);
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <SafeAreaWrapper>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
       >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Header */}
         <View style={styles.headerContainer}>
           <IconButton
@@ -219,7 +221,8 @@ export default function LoginScreen({ navigation }: any) {
       >
         {snackbarMessage || error || 'Login failed. Please try again.'}
       </Snackbar>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaWrapper>
   );
 }
 
