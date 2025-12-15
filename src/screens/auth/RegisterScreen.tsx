@@ -16,15 +16,21 @@ import {
   HelperText,
   IconButton,
 } from 'react-native-paper';
+import { useDispatch } from 'react-redux';
+import { CommonActions } from '@react-navigation/native';
+import { AppDispatch } from '../../store/store';
+import { LoginUser, setUser } from '../../store/slices/auth/authSlice';
 import { Register as RegisterService } from '../../api/services/auth/authService';
-import { StudentRegisterPayload } from '../../types/auth/auth.types';
-import { validateRegister } from '../../utils/constant';
+import { StudentRegisterPayload, LoginPayload } from '../../types/auth/auth.types';
+import { validateRegister, getIPAddress } from '../../utils/constant';
+
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 
 export default function RegisterScreen({ navigation }: any) {
+  const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState({
-    userName: '',
     email: '',
+    confirmEmail: '',
     mobileNo: '',
     adharID: '',
     formNo: '',
@@ -53,24 +59,82 @@ export default function RegisterScreen({ navigation }: any) {
 
     setLoading(true);
     try {
+      // Step 1: Register the user
       const payload: StudentRegisterPayload = {
         AdharID: formData.adharID,
         ConfirmPassword: formData.confirmPassword,
         FormNo: formData.formNo,
         MobileNo: formData.mobileNo,
         PasswordHash: formData.password,
-        UserLogin: formData.userName,
+        UserLogin: formData.email,
       };
+      console.log('Register payload:', payload);
       const result = await RegisterService(payload);
-      // Try to read message from backend
-      const msg = result?.Message || 'Registration successful! Please login.';
-      setSnackbarMessage(msg);
-      setSnackbarVisible(true);
-      setTimeout(() => {
-        navigation.navigate('Login');
-      }, 1500);
+      console.log('Register response:', result);
+
+      // Stop the flow if registration failed and show the message from API
+      if (!result || result?.ResponseCode !== 1) {
+        const registrationError =
+          result?.Message || 'Registration failed. Please try again.';
+        setSnackbarMessage(registrationError);
+        setSnackbarVisible(true);
+        return;
+      }
+
+      // Prefer any registration identifier we get back as a temporary URN
+      const registrationId =
+        result?.ResponseData?.GenRegisterID ??
+        result?.ResponseData?.RCNO ??
+        result?.ResponseData?.RUserID ??
+        null;
+      
+      // Step 2: Auto-login after successful registration
+      const userIp = (await getIPAddress(3000)) || '';
+      const loginPayload: LoginPayload = {
+        UserName: formData.email,
+        Password: formData.password,
+        AceYear: new Date().toISOString(),
+        UserAccessAddress: userIp || '',
+        UserType: 12, // Student type
+      };
+      console.log('Login payload:', loginPayload);
+      
+      const loginResponse = await dispatch(LoginUser(loginPayload)).unwrap();
+      console.log('Login response:', loginResponse);
+
+      // Guard: if login payload missing user data, stop here
+      if (!loginResponse?.UserData) {
+        setSnackbarMessage('Login failed after registration. Please try again.');
+        setSnackbarVisible(true);
+        return;
+      }
+
+      // If backend login user does not yet contain URNNO, populate it from registration response
+      if (
+        registrationId &&
+        (!loginResponse?.UserData?.URNNO || loginResponse.UserData.URNNO === 0)
+      ) {
+        dispatch(setUser({ URNNO: registrationId }));
+      }
+      console.log('Navigation: login successful, navigating to profile');
+      
+      // Step 3: Navigate directly to Student Profile screen
+      // Reset to StudentDashboard (StudentNavigator), then navigate to Profile
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'StudentDashboard' }],
+        })
+      );
+      // Navigate to Profile screen within StudentNavigator
+      navigation.navigate('StudentDashboard', { screen: 'StudentProfile' });
+      
     } catch (error: any) {
-      setSnackbarMessage(error?.message || 'Registration failed. Please try again.');
+      const errorMessage = error?.response?.data?.Message 
+        || error?.message 
+        || error?.toString() 
+        || 'Registration failed. Please try again.';
+      setSnackbarMessage(errorMessage);
       setSnackbarVisible(true);
     } finally {
       setLoading(false);
@@ -115,24 +179,6 @@ export default function RegisterScreen({ navigation }: any) {
 
         {/* Form */}
         <View style={styles.formContainer}>
-          {/* Username */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              mode="outlined"
-              placeholder="Choose a username"
-              value={formData.userName}
-              onChangeText={(value) => handleInputChange('userName', value)}
-              editable={!loading}
-              style={styles.input}
-              outlineColor={validationErrors.userName ? '#d32f2f' : '#ddd'}
-              activeOutlineColor={validationErrors.userName ? '#d32f2f' : '#1649b2'}
-            />
-            {validationErrors.userName && (
-              <HelperText type="error">{validationErrors.userName}</HelperText>
-            )}
-          </View>
-
           {/* Email */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
@@ -148,6 +194,24 @@ export default function RegisterScreen({ navigation }: any) {
             />
             {validationErrors.email && (
               <HelperText type="error">{validationErrors.email}</HelperText>
+            )}
+          </View>
+
+          {/* Confirm Email */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirm Email</Text>
+            <TextInput
+              mode="outlined"
+              placeholder="Re-enter your email"
+              value={formData.confirmEmail}
+              onChangeText={(value) => handleInputChange('confirmEmail', value)}
+              editable={!loading}
+              style={styles.input}
+              outlineColor={validationErrors.confirmEmail ? '#d32f2f' : '#ddd'}
+              activeOutlineColor={validationErrors.confirmEmail ? '#d32f2f' : '#1649b2'}
+            />
+            {validationErrors.confirmEmail && (
+              <HelperText type="error">{validationErrors.confirmEmail}</HelperText>
             )}
           </View>
 
@@ -189,7 +253,7 @@ export default function RegisterScreen({ navigation }: any) {
             )}
           </View>
 
-          {/* Form Number */}
+          {/* Form Number
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Form Number</Text>
             <TextInput
@@ -205,7 +269,7 @@ export default function RegisterScreen({ navigation }: any) {
             {validationErrors.formNo && (
               <HelperText type="error">{validationErrors.formNo}</HelperText>
             )}
-          </View>
+          </View> */}
 
           {/* Password */}
           <View style={styles.inputGroup}>
