@@ -1,0 +1,22 @@
+On the StudentCourseEnrollment.tsx screen, it should give a dropdown for selecting Taluka initially
+
+Now we've got the list of talukas saved in the redux store cuz of our earlier api call and function call FetchStudentProfileSelectList (refer @studentSlice.ts, and for types definitions refer @SelectList.types.ts)
+
+Then when the student selects a specific Taluka, getInstituteOnTaluka function should be called to fetch the institutes in that taluka using the corresponding api
+and these should be shown in a new dropdown selector 
+
+Then after selecting Institute, GetSectionOnInstituteCode function should be called to fetch the sections for that institute and the sections will be shown in a new dropdown selector
+
+Then GetCourseListOnSection should be called after section selection so it fetches the the courses available and they are shown in the new dropdoown selector
+
+Then after selecting course, GetClassListOnCourse should be called to get class corresponding to the course, and they should be shown in the final dropdoown selector and when user selects one class fromm the dropdown, immediately following functions should be called 
+GetClassMediumTypeList -> GetEnrolledCourse -> GetDirectAdmissionClass -> GetAdmissionClassSubjectPaperList
+
+And after this a Save button should be shown.
+If user clicks on save:
+SaveMeritAdmissionEnrollMent should be called
+And if its successfull, he should be navigated to the EnrollmentList.tsx screen showing the updated enrollments fetched again by calling GetEnrollmentList
+
+You may refer to @enrollment.ts for apis, @useEnrollment.ts for hooks, @studentSlice.ts and @store.ts for redux related stuff
+Yk we are storing many of the things in our store, so the things reqd to call the api (like query paramters or payload) may be already prsent in the store, or you would get them by calling preceeding apis in the sequence i've given you
+You can study the details of reqd api calls in @apiDetails.txt for reference 
