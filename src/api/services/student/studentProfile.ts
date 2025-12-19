@@ -199,7 +199,7 @@ export const UpdateStudentCasteCertificate = async (payload: DocumentUploadPaylo
         type: payload.file.type || "application/pdf",
         name: payload.file.name || "caste_cert.pdf",
     } as any);
-
+    try {
         const response = await api.post(
             '/Admission/Registration/UpdateStudentCasteCertificate',
             formData,
