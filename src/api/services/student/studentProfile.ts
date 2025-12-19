@@ -183,6 +183,7 @@ export const UpdateStudentLCTCCertificate = async (
 };
 
 export const UpdateStudentCasteCertificate = async (payload: DocumentUploadPayload) => {
+
     try {
         const formData = new FormData();
         
