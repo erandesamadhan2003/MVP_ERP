@@ -9,8 +9,16 @@ import {
     GetFileForStudentLCTCCertificate,
     GetFileForStudentCasteCertificate,
     GetEnrollmentList,
+    getInstituteOnTaluka,
+    GetSectionOnInstituteCode,
+    GetCourseListOnSection,
+    GetClassListOnCourse,
+    GetClassMediumTypeList,
+    GetEnrolledCourse,
+    GetDirectAdmissionClass,
+    GetAdmissionClassSubjectPaperList,
 } from '../../api/services/student/enrollement';
-import { StudentEnrollmentInfo } from '../../types/student/Enrollment.types';
+import { StudentEnrollmentInfo, Institute, Section, Course, Class, LanguageMedium } from '../../types/student/Enrollment.types';
 
 // Hook for fetching enrollment list
 export const useEnrollmentList = (
@@ -263,15 +271,24 @@ export const useSaveEnrollment = () => {
     const [success, setSuccess] = useState(false);
 
     const saveEnrollment = useCallback(
-        async (enrollmentInfo: StudentEnrollmentInfo) => {
+        async (payload: {
+            MeritAdmissionEnrollment: {
+                MeritStudentInfoID: number;
+                EnrollMentDate: string;
+                CCode: string;
+                SectionID: string;
+                CourseID: string;
+                ClassID: string;
+                MeritFormStatusId: number;
+                Taluka: string;
+            };
+        }) => {
             try {
                 setLoading(true);
                 setError(null);
                 setSuccess(false);
 
-                const response = await SaveMeritAdmissionEnrollMent(
-                    enrollmentInfo,
-                );
+                const response = await SaveMeritAdmissionEnrollMent(payload);
 
                 if (response.ResponseCode === 1) {
                     setSuccess(true);
@@ -373,5 +390,167 @@ export const useStudentCertificates = (
         loading,
         error,
         refetch: fetchCertificates,
+    };
+};
+
+// NEW: Hook for course enrollment flow
+export const useCourseEnrollmentFlow = () => {
+    const [institutes, setInstitutes] = useState<Institute[]>([]);
+    const [sections, setSections] = useState<Section[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
+    const [mediums, setMediums] = useState<LanguageMedium[]>([]);
+    const [classIsDirect, setClassIsDirect] = useState<boolean | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchInstitutes = useCallback(async (taluka: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await getInstituteOnTaluka(taluka);
+            if (response?.ResponseCode === 1) {
+                setInstitutes(response.ResponseData || []);
+                return response.ResponseData || [];
+            } else {
+                throw new Error(response?.Message || 'Failed to load institutes');
+            }
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchSections = useCallback(async (cCode: number) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await GetSectionOnInstituteCode(cCode);
+            if (response?.ResponseCode === 1) {
+                setSections(response.ResponseData || []);
+                return response.ResponseData || [];
+            } else {
+                throw new Error(response?.Message || 'Failed to load sections');
+            }
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchCourses = useCallback(async (sectionId: number, cCode: number) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await GetCourseListOnSection(sectionId, cCode);
+            if (response?.ResponseCode === 1) {
+                setCourses(response.ResponseData || []);
+                return response.ResponseData || [];
+            } else {
+                throw new Error(response?.Message || 'Failed to load courses');
+            }
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchClasses = useCallback(async (courseId: number, cCode: number, roleId: number = 12) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await GetClassListOnCourse(courseId, cCode, roleId);
+            if (response?.ResponseCode === 1) {
+                setClasses(response.ResponseData || []);
+                return response.ResponseData || [];
+            } else {
+                throw new Error(response?.Message || 'Failed to load classes');
+            }
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchClassDetails = useCallback(async (
+        classId: number, 
+        cCode: number, 
+        meritStudentInfoId?: number
+    ) => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Fetch medium list
+            const mediumRes = await GetClassMediumTypeList(classId, cCode);
+            if (mediumRes?.ResponseCode === 1) {
+                setMediums(mediumRes.ResponseData || []);
+            }
+
+            // Check if class has direct admission
+            const directRes = await GetDirectAdmissionClass(cCode, classId);
+            
+            // Console log the entire response for debugging
+            console.log('GetDirectAdmissionClass Response:', JSON.stringify(directRes, null, 2));
+            console.log('GetDirectAdmissionClass ResponseCode:', directRes?.ResponseCode);
+            console.log('GetDirectAdmissionClass ResponseData:', directRes?.ResponseData);
+            console.log('GetDirectAdmissionClass ResponseData type:', typeof directRes?.ResponseData);
+            
+            if (directRes?.ResponseCode === 1) {
+                // If ResponseData is true, show payment details (NOT direct admission)
+                // If ResponseData is false, hide payment details (IS direct admission)
+                const showPaymentDetails = directRes.ResponseData === true;
+                console.log('Setting classIsDirect to:', !showPaymentDetails);
+                console.log('Should show payment details:', showPaymentDetails);
+                // Store opposite: classIsDirect = false means show payment details
+                setClassIsDirect(!showPaymentDetails);
+            } else {
+                console.log('GetDirectAdmissionClass failed or ResponseCode !== 1');
+                setClassIsDirect(null);
+            }
+
+            // If meritStudentInfoId provided, check enrolled course
+            if (meritStudentInfoId) {
+                await GetEnrolledCourse(meritStudentInfoId, classId, cCode);
+            }
+
+            return {
+                mediums: mediumRes?.ResponseData || [],
+                isDirect: directRes?.ResponseData !== true,
+            };
+        } catch (err: any) {
+            console.error('fetchClassDetails error:', err);
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const clearError = useCallback(() => setError(null), []);
+
+    return {
+        institutes,
+        sections,
+        courses,
+        classes,
+        mediums,
+        classIsDirect,
+        loading,
+        error,
+        fetchInstitutes,
+        fetchSections,
+        fetchCourses,
+        fetchClasses,
+        fetchClassDetails,
+        clearError,
     };
 };

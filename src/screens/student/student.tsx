@@ -48,8 +48,14 @@ export default function StudentScreen({ navigation }: any) {
     };
 
     const handleMenuItemPress = (item: MenuItem) => {
-        if (item.MenuName === 'Profile') {
+        const name = (item.MenuName || '').toLowerCase();
+
+        if (name === 'profile') {
             navigation.navigate('StudentProfile');
+        } else if (name === 'course enrollment' || name === 'courseenrollment') {
+            navigation.navigate('StudentCourseEnrollment');
+        } else if (name === 'enrollment list' || name === 'enrollmentlist') {
+            navigation.navigate('EnrollmentList');
         }
         // Add more mappings as needed
     };

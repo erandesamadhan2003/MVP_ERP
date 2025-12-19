@@ -1,5 +1,6 @@
 import { api } from '../../api';
 import { StudentEnrollmentInfo } from '../../../types/student/Enrollment.types';
+import base64 from 'react-native-base64';
 
 export const getInstituteOnTaluka = async (taluka: string) => {
     try {
@@ -32,9 +33,16 @@ export const GetCourseListOnSection = async ( SectionID: number, CCode: number,)
 };
 
 // http://mvperp.org:82/api/Admission/Registration/GetClassListOnCourse?CourseID=307&CCode=106015&RoleID=12
-export const GetClassListOnCourse = async ( CourseID: number, CCode: number,) => {
+export const GetClassListOnCourse = async (
+    CourseID: number,
+    CCode: number,
+    RoleID: number,
+) => {
     try {
-        const response = await api.get(`/Admission/Registration/GetClassListOnCourse`, { params: { CourseID, CCode },});
+        const response = await api.get(
+            `/Admission/Registration/GetClassListOnCourse`,
+            { params: { CourseID, CCode, RoleID } },
+        );
         return response.data;
     } catch (error) {
         console.error('GetClassListOnCourse error:', error);
@@ -91,9 +99,23 @@ export const GetAdmissionClassSubjectPaperList = async ( ClassID: number, CCode:
 
 
 // http://mvperp.org:82/api/Admission/Registration/SaveMeritAdmissionEnrollMent
-export const SaveMeritAdmissionEnrollMent = async ( enrollmentInfo: StudentEnrollmentInfo,) => {
+export const SaveMeritAdmissionEnrollMent = async (payload: {
+    MeritAdmissionEnrollment: {
+        MeritStudentInfoID: number;
+        EnrollMentDate: string;
+        CCode: string;
+        SectionID: string;
+        CourseID: string;
+        ClassID: string;
+        MeritFormStatusId: number;
+        Taluka: string;
+    };
+}) => {
     try {
-        const response = await api.post(`/Admission/Registration/SaveMeritAdmissionEnrollMent`, enrollmentInfo);
+        const response = await api.post(
+            `/Admission/Registration/SaveMeritAdmissionEnrollMent`,
+            payload,
+        );
         return response.data;
     } catch (error) {
         console.error('SaveMeritAdmissionEnrollMent error:', error);
@@ -202,6 +224,53 @@ export const GetEnrollmentSubjectPaperMarksForEdit = async ( ClassID: number, CC
         return response.data;
     } catch (error) {
         console.error('GetEnrollmentSubjectPaperMarksForEdit error:', error);
+        throw error;
+    }
+};
+
+// http://mvperp.org:82/api/Admission/Registration/PrintStudentMeritForm
+export const PrintStudentMeritForm = async (payload: any) => {
+    try {
+        const response = await api.post(
+            `/Admission/Registration/PrintStudentMeritForm`,
+            payload,
+            {
+                responseType: 'arraybuffer',
+            }
+        );
+        
+        // Convert arraybuffer to base64
+        const bytes = new Uint8Array(response.data);
+        let binary = '';
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        
+        return base64.encode(binary);
+    } catch (error) {
+        console.error('PrintStudentMeritForm error:', error);
+        throw error;
+    }
+};
+
+export const RemoveEnrollmentForm = async (
+    MeritEnrollMentID: number,
+    MeritFormStatusID: number
+) => {
+    try {
+        const response = await api.get(
+            `/Admission/Registration/RemoveEnrollmentForm`,
+            {
+                params: {
+                    MeritEnrollMentID,
+                    MeritFormStatusID,
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('RemoveEnrollmentForm error:', error);
         throw error;
     }
 };

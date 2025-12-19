@@ -183,23 +183,25 @@ export const UpdateStudentLCTCCertificate = async (
 };
 
 export const UpdateStudentCasteCertificate = async (payload: DocumentUploadPayload) => {
-    const formData = new FormData();
-    
-    // Add common fields
-    formData.append("MeritStudentMasterID", payload.MeritStudentMasterID.toString());
-    formData.append("ApplicationToken", payload.ApplicationToken);
-    formData.append("AddBy", payload.AddBy.toString());
-    formData.append("AddByTime", payload.AddByTime);
-    formData.append("EditBy", payload.EditBy.toString());
-    formData.append("EditByTime", payload.EditByTime);
-    
-    // Add file
-    formData.append("file", {
-        uri: payload.file.uri,
-        type: payload.file.type || "application/pdf",
-        name: payload.file.name || "caste_cert.pdf",
-    } as any);
+
     try {
+        const formData = new FormData();
+        
+        // Add common fields
+        formData.append("MeritStudentMasterID", payload.MeritStudentMasterID.toString());
+        formData.append("ApplicationToken", payload.ApplicationToken);
+        formData.append("AddBy", payload.AddBy.toString());
+        formData.append("AddByTime", payload.AddByTime);
+        formData.append("EditBy", payload.EditBy.toString());
+        formData.append("EditByTime", payload.EditByTime);
+        
+        // Add file
+        formData.append("file", {
+            uri: payload.file.uri,
+            type: payload.file.type || "application/pdf",
+            name: payload.file.name || "caste_cert.pdf",
+        } as any);
+
         const response = await api.post(
             '/Admission/Registration/UpdateStudentCasteCertificate',
             formData,

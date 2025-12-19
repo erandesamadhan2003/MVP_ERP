@@ -3,7 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const api = axios.create({
     baseURL: 'http://mvperp.org:82/api',
-    timeout: 10000,
+    // Increased timeout to give slower APIs more time before failing
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },
