@@ -6,7 +6,9 @@ import {
     GetClassOnExamList,
     GetClassSubjectPaperList,
     GetExamFormTimeTableList,
+    SaveExamForm,
 } from '../../api/services/student/examination.ts';
+import { ExamFormPayload } from '../../types/student/ExamForm.types';
 
 // Generic hook state interface
 interface UseApiState<T> {
@@ -240,4 +242,31 @@ export const useClassDependentData = (
         error: examList.error || subjectPaperList.error || timeTableList.error,
         refetchAll,
     };
+};
+
+// Hook for SaveExamForm
+export const useSaveExamForm = () => {
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<Error | null>(null);
+
+    const saveExamForm = useCallback(async (payload: ExamFormPayload) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await SaveExamForm(payload);
+            if (response?.Value?.ResponseCode === 1) {
+                return { success: true, message: response.Value.Message };
+            } else {
+                throw new Error(response?.Value?.Message || 'Failed to save exam form');
+            }
+        } catch (err) {
+            const error = err as Error;
+            setError(error);
+            return { success: false, message: error.message };
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { saveExamForm, loading, error };
 };

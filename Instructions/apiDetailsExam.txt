@@ -1,0 +1,421 @@
+📘 API FLOW OVERVIEW (High Level)
+
+This is an Exam Form / Subject Selection flow.
+
+Core idea
+
+Start from Institute (CCode)
+
+Identify Student (URNNO)
+
+Resolve Class → Exams → Subjects → Timetable
+
+1️⃣ Get Institute Section List
+🔹 API Name
+
+GetInstituteSectionList
+
+🔹 Purpose
+
+Fetch all academic sections (Junior, PG, PhD, etc.) under an institute.
+
+🔹 Endpoint
+GET /api/Admission/TimeTable/GetInstituteSectionList
+
+🔹 Query Parameters
+Field	Type	Required
+CCode	number	✅
+🔹 Request Payload (QSP)
+{
+  "CCode": 109003
+}
+
+🔹 Response Structure
+{
+  "ResponseCode": number,
+  "Message": string | null,
+  "ResponseData": [
+    {
+      "SectionID": number,
+      "SectionName": string,
+      "IsSelected": boolean,
+      "CCode": number
+    }
+  ]
+}
+
+🔹 Used Later?
+
+✔️ SectionID
+✔️ SectionName (for UI filtering / display)
+
+2️⃣ Get Institute Class List
+🔹 API Name
+
+GetInstituteClassList
+
+🔹 Purpose
+
+Fetch all classes available in the institute (mapped to sections, courses, faculties).
+
+🔹 Endpoint
+GET /api/Admission/Certificate/GetInstituteClassList
+
+🔹 Query Parameters
+Field	Type	Required
+CCode	number	✅
+🔹 Response Structure
+{
+  "ResponseCode": number,
+  "Message": string | null,
+  "ResponseData": [
+    {
+      "ClassName": string,
+      "SectionName": string,
+      "FacultyName": string,
+      "InstituteClassID": number,
+      "CCode": number,
+      "ClassID": number,
+      "SectionID": number,
+      "CourseID": number,
+      "FacultyID": number
+    }
+  ]
+}
+
+🔹 Used Later?
+
+✔️ ClassID
+✔️ SectionID
+
+3️⃣ Get Student Admission Details (URN Based)
+🔹 API Name
+
+GetURNNOAdmission
+
+🔹 Purpose
+
+Fetch student master data + class mapping using URN number.
+
+🔹 Endpoint
+GET /api/Institute/ExamForm/GetURNNOAdmission
+
+🔹 Query Parameters
+Field	Type	Required
+URNNO	number	✅
+🔹 Response Structure (Important Fields Only)
+{
+  "ResponseCode": number,
+  "Message": string | null,
+  "ResponseData": [
+    {
+      "CCODE": number,
+      "URNNO": number,
+      "ClassID": number,
+      "AceYear": string,
+      "Syllabus": string,
+      "SectionName": string,
+      "ClassName": string,
+      "CourseName": string,
+      "FacultyName": string,
+      "FullName": string,
+      "Email": string
+    }
+  ]
+}
+
+🔹 Used Later?
+
+✔️ CCode
+✔️ ClassID
+✔️ AceYear
+✔️ Syllabus
+
+⚠️ This is the MOST CRITICAL API
+Almost all later APIs depend on this response.
+
+4️⃣ Get Exam List for a Class
+🔹 API Name
+
+GetClassOnExamList
+
+🔹 Purpose
+
+Fetch exams applicable for the selected class.
+
+🔹 Endpoint
+GET /api/Institute/ExamForm/GetClassOnExamList
+
+🔹 Query Parameters
+Field	Type	Required
+ClassID	number	✅
+🔹 Response Structure
+{
+  "ResponseCode": number,
+  "Message": string | null,
+  "ResponseData": [
+    {
+      "ExamNameID": number,
+      "NameOfExam": string
+    }
+  ]
+}
+
+🔹 Used Later?
+
+✔️ NameOfExam (used to group subjects)
+
+5️⃣ Get Class Subject / Paper List
+🔹 API Name
+
+GetClassSubjectPaperList
+
+🔹 Purpose
+
+Fetch subject papers for the student based on class + syllabus + year.
+
+🔹 Endpoint
+POST /api/Institute/UniversityStudentInfo/GetClassSubjectPaperList
+
+🔹 Request Payload
+{
+  "CCode": number,
+  "URNNO": number,
+  "AceYear": string,
+  "ClassID": number,
+  "Syllabus": string,
+  "Status": "StudentSubject"
+}
+
+🔹 Response Structure
+{
+  "ResponseCode": number,
+  "Message": string | null,
+  "ResponseData": [
+    {
+      "Paper": string,
+      "SubjectDetails": string,
+      "SubjectCode": number,
+      "NameOfExam": string,
+      "IsSelected": boolean,
+      "Marks": boolean
+    }
+  ]
+}
+
+🔹 Used Later?
+
+✔️ SubjectCode
+✔️ Paper
+✔️ NameOfExam
+
+6️⃣ Get Exam Form Time Table
+🔹 API Name
+
+GetExamFormTimeTableList
+
+🔹 Purpose
+
+Fetch timetable for exam form submission.
+
+🔹 Endpoint
+POST /api/Institute/ExamFormTimeTable/GetExamFormTimeTableList
+
+🔹 Request Payload
+{
+  "ClassID": number,
+  "CCode": number
+}
+
+🔹 Response Structure
+{
+  "ResponseCode": number,
+  "Message": string | null,
+  "ResponseData": []
+}
+
+
+⚠️ Empty response indicates no active timetable.
+
+🔗 API DEPENDENCY GRAPH (IMPORTANT)
+CCode
+  │
+  ├──▶ GetInstituteSectionList
+  │
+  ├──▶ GetInstituteClassList
+  │
+URNNO
+  │
+  └──▶ GetURNNOAdmission
+            │
+            ├──▶ ClassID ──▶ GetClassOnExamList
+            │                   │
+            │                   └──▶ NameOfExam
+            │
+            ├──▶ AceYear
+            ├──▶ Syllabus
+            └──▶ ClassID + CCode
+                    │
+                    ├──▶ GetClassSubjectPaperList
+                    │
+                    └──▶ GetExamFormTimeTableList
+
+🔄 EXACT DATA DEPENDENCIES (Cheat Sheet)
+API	Uses From Previous API
+GetInstituteSectionList	CCode (Static / Login Context)
+GetInstituteClassList	CCode
+GetURNNOAdmission	URNNO
+GetClassOnExamList	ClassID ← GetURNNOAdmission
+GetClassSubjectPaperList	CCode, URNNO, AceYear, ClassID, Syllabus ← GetURNNOAdmission
+GetExamFormTimeTableList	ClassID, CCode ← GetURNNOAdmission
+
+
+
+SAVE EXAM FORM API — COMPLETE DETAILS
+🔹 API NAME
+
+Add / Update Exam Form
+
+Same API is used for SAVE (INSERT) and UPDATE
+
+🔹 API URL
+/ExamForm/AddUpdateExamForm
+
+
+(Base URL = UniversityResult service)
+
+🔹 HTTP METHOD
+POST
+
+🔹 PURPOSE
+
+Save a new Exam Form inward entry
+
+Update an existing Exam Form
+
+Backend decides INSERT or UPDATE based on ExamFormID
+
+🔹 PAYLOAD STRUCTURE (REQUEST BODY)
+📦 JSON Object (ROOT LEVEL)
+{
+  "ExamFormID": number,
+  "URNNO": number,
+  "ClassID": number,
+  "TName": string,
+  "ExamTypeID": number,
+  "ExamDetails": string,
+  "ExamFormDate": string,
+  "ExamYear": string,
+  "AddBy": number,
+  "AddByTime": string,
+  "CCode": number
+}
+
+🔹 FIELD-WISE DETAILS (IMPORTANT)
+Field Name	Type	Required	Description
+ExamFormID	number	✅	0 = Save, >0 = Update
+URNNO	number	✅	Student unique number
+ClassID	number	✅	Student class ID
+TName	string	✅	Student full name
+ExamTypeID	number	✅	First selected exam type ID
+ExamDetails	string	✅	Concatenated exam names
+ExamFormDate	datetime	✅	Current date-time
+ExamYear	datetime	✅	Exam academic year end date
+AddBy	number	✅	Logged-in user ID
+AddByTime	datetime	✅	Current date-time
+CCode	number	✅	College code
+🔹 SAMPLE PAYLOAD (SAVE – NEW RECORD)
+{
+  "ExamFormID": 0,
+  "URNNO": 123456,
+  "ClassID": 8317,
+  "TName": "Rahul Sharma",
+  "ExamTypeID": 1,
+  "ExamDetails": "Mid Semester; End Semester;",
+  "ExamFormDate": "2025-01-10T10:30:00",
+  "ExamYear": "2025-03-31T00:00:00",
+  "AddBy": 101,
+  "AddByTime": "2025-01-10T10:30:00",
+  "CCode": 109003
+}
+
+🔹 SAMPLE PAYLOAD (UPDATE – EXISTING RECORD)
+{
+  "ExamFormID": 55,
+  "URNNO": 123456,
+  "ClassID": 8317,
+  "TName": "Rahul Sharma",
+  "ExamTypeID": 2,
+  "ExamDetails": "End Semester;",
+  "ExamFormDate": "2025-01-15T11:00:00",
+  "ExamYear": "2025-03-31T00:00:00",
+  "AddBy": 101,
+  "AddByTime": "2025-01-15T11:00:00",
+  "CCode": 109003
+}
+
+🔹 RESPONSE STRUCTURE
+📦 ROOT RESPONSE
+{
+  "Value": {
+    "ResponseCode": number,
+    "Message": string,
+    "ResponseData": any
+  }
+}
+
+🔹 RESPONSE FIELD DETAILS
+Field	Type	Description
+ResponseCode	number	1 = Success, 2 = App Error, 3 = Service Error
+Message	string	Success or error message
+ResponseData	any	Usually null or saved record ID
+🔹 SAMPLE SUCCESS RESPONSE
+{
+  "Value": {
+    "ResponseCode": 1,
+    "Message": "Records added successfully.",
+    "ResponseData": null
+  }
+}
+
+🔹 SAMPLE FAILURE RESPONSE
+{
+  "Value": {
+    "ResponseCode": 2,
+    "Message": "Failed to add data due to application error.",
+    "ResponseData": null
+  }
+}
+
+🔹 IMPORTANT BACKEND RULE (MUST KNOW)
+IF ExamFormID == 0
+    → INSERT NEW RECORD
+ELSE
+    → UPDATE EXISTING RECORD
+
+🔹 MINIMUM REQUIRED FIELDS (ABSOLUTE)
+
+If ANY of these are missing → SAVE FAILS
+
+ExamFormID
+URNNO
+ClassID
+ExamTypeID
+ExamDetails
+ExamYear
+AddBy
+CCode
+
+🔹 REACT NATIVE AXIOS CALL (REFERENCE)
+export const saveExamForm = (payload: ExamFormModel) =>
+  api.post('/ExamForm/AddUpdateExamForm', payload);
+
+✅ FINAL SUMMARY
+Item	Value
+API Name	AddUpdateExamForm
+URL	/ExamForm/AddUpdateExamForm
+Method	POST
+Insert vs Update	ExamFormID
+Payload Type	JSON
+Response Wrapper	Value
+Success Code	ResponseCode = 1
