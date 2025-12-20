@@ -58,6 +58,8 @@ export default function StudentScreen({ navigation }: any) {
             navigation.navigate('EnrollmentList');
         } else if(name === 'exam form' || name === 'examform'){
             navigation.navigate('ExamForm');
+        } else if(name === 'reading attendance' || name === 'readingattendance'){
+            navigation.navigate('ReadingAttendance');
         }
         // Add more mappings as needed
     };
