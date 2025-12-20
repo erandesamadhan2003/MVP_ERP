@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
     ActivityIndicator,
     Button,
@@ -11,6 +12,7 @@ import {
     Searchbar,
     Snackbar,
 } from 'react-native-paper';
+import { RootState } from '../../../store/store';
 import SafeAreaWrapper from '../../../components/SafeAreaWrapper';
 import { InputField } from '../../../components/common/InputField';
 import { DropdownField } from '../../../components/common/DropdownField';
@@ -24,9 +26,12 @@ interface ExamFormProps {
 }
 
 function ExamForm({ navigation, route }: ExamFormProps) {
-    const { urnno } = route.params || { urnno: 654125 }; // Get URNNO from navigation params
-    const { state, handlers } = useExamForm(urnno);
+    const user = useSelector((state: RootState) => state.auth.user);
+    const urnnoFromRoute = route.params?.urnno;
+    const urnno = urnnoFromRoute || user?.URNNO;
     
+    // Don't call the hook if URNNO is not available
+    const { state, handlers } = useExamForm(urnno || 0);
     const [subjectSearchQuery, setSubjectSearchQuery] = useState('');
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -56,34 +61,45 @@ function ExamForm({ navigation, route }: ExamFormProps) {
         handlePrint,
     } = handlers;
 
-    // Class dropdown options
-    const classOptions = classList.map(cls => ({
-        label: `${cls.ClassName} - ${cls.SectionName}`,
-        value: cls.ClassID,
-    }));
+    const classOptions = useMemo(() => 
+        classList.map(cls => ({
+            label: `${cls.ClassName} - ${cls.SectionName}`,
+            value: cls.ClassID,
+        })), [classList]
+    );
 
-
-    // Filter subjects based on search
-    const filteredGroupedSubjects = React.useMemo<GroupedSubjects>(() => {
+    const filteredGroupedSubjects = useMemo<GroupedSubjects>(() => {
         if (!subjectSearchQuery) return groupedSubjects;
         
         const filtered: GroupedSubjects = {};
         Object.entries(groupedSubjects).forEach(([examName, subjects]) => {
-            const filteredSubjects = subjects.filter(
-                subject =>
-                    subject.SubjectDetails.toLowerCase().includes(
-                        subjectSearchQuery.toLowerCase()
-                    ) ||
-                    subject.Paper.toLowerCase().includes(
-                        subjectSearchQuery.toLowerCase()
-                    )
+            const filteredSubjects = subjects.filter(subject =>
+                subject.SubjectDetails.toLowerCase().includes(subjectSearchQuery.toLowerCase()) ||
+                subject.Paper.toLowerCase().includes(subjectSearchQuery.toLowerCase())
             );
-            if (filteredSubjects.length > 0) {
-                filtered[examName] = filteredSubjects;
-            }
+            if (filteredSubjects.length > 0) filtered[examName] = filteredSubjects;
         });
         return filtered;
     }, [groupedSubjects, subjectSearchQuery]);
+
+    const handleSaveClick = async () => {
+        const result = await handleSave();
+        if (result) {
+            setSnackbarMessage(result.success ? 'Exam form saved successfully!' : result.message || 'Failed to save');
+            setSnackbarVisible(true);
+        }
+    };
+
+    // Check if URNNO is available
+    if (!urnno) {
+        return (
+            <SafeAreaWrapper>
+                <View style={styles.centered}>
+                    <Text style={styles.errorText}>URNNO not found. Please log in again.</Text>
+                </View>
+            </SafeAreaWrapper>
+        );
+    }
 
     if (!studentInfo) {
         return (
@@ -96,17 +112,22 @@ function ExamForm({ navigation, route }: ExamFormProps) {
         );
     }
 
+    const FormField = ({ label, value, editable = false, style }: any) => (
+        <View style={[styles.fieldContainer, style]}>
+            <Text style={styles.fieldLabel}>{label}</Text>
+            <View style={styles.inputWrapper}>
+                <InputField label="" value={value} editable={editable} />
+            </View>
+        </View>
+    );
+
     return (
         <SafeAreaWrapper>
             <View style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
-                        <IconButton
-                            icon="arrow-left"
-                            size={22}
-                            onPress={() => navigation.goBack()}
-                        />
+                        <IconButton icon="arrow-left" size={22} onPress={() => navigation.goBack()} />
                         <Text style={styles.title}>Examination Form Fill</Text>
                     </View>
                 </View>
@@ -118,81 +139,50 @@ function ExamForm({ navigation, route }: ExamFormProps) {
                     </View>
                 )}
 
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     {/* Examination Information Card */}
                     <Card style={styles.card}>
                         <Card.Content>
                             <Text style={styles.sectionTitle}>Examination Information</Text>
 
                             <View style={styles.formRow}>
-                                <View style={styles.formFieldSmall}>
-                                    <Text style={styles.fieldLabel}>URNNO</Text>
-                                    <InputField
-                                        label=""
-                                        value={String(studentInfo.URNNO)}
-                                        editable={false}
-                                    />
-                                </View>
-                                <View style={styles.formFieldLarge}>
-                                    <Text style={styles.fieldLabel}>Student Name</Text>
-                                    <InputField
-                                        label=""
-                                        value={studentInfo.FullName}
-                                        editable={false}
-                                    />
-                                </View>
+                                <FormField label="URNNO" value={String(studentInfo.URNNO)} style={styles.formFieldSmall} />
+                                <FormField label="Student Name" value={studentInfo.FullName} style={styles.formFieldLarge} />
                             </View>
 
                             <View style={styles.formRow}>
-                                <View style={styles.formField}>
+                                <View style={[styles.fieldContainer, styles.formField]}>
                                     <Text style={styles.fieldLabel}>Class Name</Text>
-                                    <DropdownField
-                                        label=""
-                                        value={
-                                            selectedClass
-                                                ? `${selectedClass.ClassName} - ${selectedClass.SectionName}`
-                                                : ''
-                                        }
-                                        options={classOptions}
-                                        onSelect={(classId) => {
-                                            const selected = classList.find(
-                                                c => c.ClassID === classId
-                                            );
-                                            if (selected) onClassChange(selected);
-                                        }}
-                                    />
+                                    <View style={styles.inputWrapper}>
+                                        <DropdownField
+                                            label=""
+                                            value={selectedClass ? `${selectedClass.ClassName} - ${selectedClass.SectionName}` : ''}
+                                            options={classOptions}
+                                            onSelect={(classId) => {
+                                                const selected = classList.find(c => c.ClassID === classId);
+                                                if (selected) onClassChange(selected);
+                                            }}
+                                        />
+                                    </View>
                                 </View>
-                                <View style={styles.formField}>
+                                <View style={[styles.fieldContainer, styles.formField]}>
                                     <Text style={styles.fieldLabel}>Exam Eyear</Text>
-                                    <DatePickerField
-                                        label=""
-                                        value={examYear}
-                                        onDateChange={onExamYearChange}
-                                    />
+                                    <View style={styles.inputWrapper}>
+                                        <DatePickerField label="" value={examYear} onDateChange={onExamYearChange} />
+                                    </View>
                                 </View>
                             </View>
 
                             <View style={styles.examSelectionContainer}>
-                                <Text style={styles.fieldLabel}>Select Exams</Text>
+                                <Text style={[styles.fieldLabel, {marginBottom: 10}]}>Select Exams</Text>
                                 {examList.map(exam => (
                                     <TouchableOpacity
                                         key={exam.ExamNameID}
                                         style={styles.checkboxRow}
                                         onPress={() => onExamToggle(exam.ExamNameID)}
                                     >
-                                        <Checkbox
-                                            status={
-                                                selectedExams.includes(exam.ExamNameID)
-                                                    ? 'checked'
-                                                    : 'unchecked'
-                                            }
-                                        />
-                                        <Text style={styles.checkboxLabel}>
-                                            {exam.NameOfExam}
-                                        </Text>
+                                        <Checkbox status={selectedExams.includes(exam.ExamNameID) ? 'checked' : 'unchecked'} />
+                                        <Text style={styles.checkboxLabel}>{exam.NameOfExam}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -200,28 +190,13 @@ function ExamForm({ navigation, route }: ExamFormProps) {
                             <View style={styles.buttonRow}>
                                 <Button
                                     mode="contained"
-                                    onPress={async () => {
-                                        const result = await handleSave();
-                                        if (result) {
-                                            setSnackbarMessage(
-                                                result.success
-                                                    ? 'Exam form saved successfully!'
-                                                    : result.message || 'Failed to save'
-                                            );
-                                            setSnackbarVisible(true);
-                                        }
-                                    }}
+                                    onPress={handleSaveClick}
                                     disabled={isLoading || selectedExams.length === 0}
                                     style={styles.saveButton}
                                 >
                                     Save
                                 </Button>
-                                <Button
-                                    mode="outlined"
-                                    onPress={handlePrint}
-                                    disabled={isLoading}
-                                    style={styles.printButton}
-                                >
+                                <Button mode="outlined" onPress={handlePrint} disabled={isLoading} style={styles.printButton}>
                                     Print
                                 </Button>
                             </View>
@@ -232,9 +207,7 @@ function ExamForm({ navigation, route }: ExamFormProps) {
                     {timeTableList.length > 0 && (
                         <Card style={[styles.card, styles.cardSpacing]}>
                             <Card.Content>
-                                <Text style={styles.sectionTitleAlt}>
-                                    Examination Form Fill Time Table
-                                </Text>
+                                <Text style={styles.sectionTitleAlt}>Examination Form Fill Time Table</Text>
                                 <DataTable>
                                     <DataTable.Header>
                                         <DataTable.Title>Section Name</DataTable.Title>
@@ -243,7 +216,6 @@ function ExamForm({ navigation, route }: ExamFormProps) {
                                         <DataTable.Title>Start Date</DataTable.Title>
                                         <DataTable.Title>End Date</DataTable.Title>
                                     </DataTable.Header>
-
                                     {timeTableList.map((item, index) => (
                                         <DataTable.Row key={index}>
                                             <DataTable.Cell>{item.SectionName}</DataTable.Cell>
@@ -263,80 +235,47 @@ function ExamForm({ navigation, route }: ExamFormProps) {
                         <Card style={[styles.card, styles.cardSpacing]}>
                             <Card.Content>
                                 <Text style={styles.sectionTitle}>Subject Info</Text>
-                                
                                 <Searchbar
                                     placeholder="Search subjects..."
                                     onChangeText={setSubjectSearchQuery}
                                     value={subjectSearchQuery}
                                     style={styles.searchBar}
                                 />
-
-                                {Object.entries(filteredGroupedSubjects).map(
-                                    ([examName, subjects]) => (
-                                        <View key={examName} style={styles.examGroup}>
-                                            <TouchableOpacity
-                                                style={styles.examGroupHeader}
-                                                onPress={() => onExamSectionToggle(examName)}
-                                            >
-                                                <IconButton
-                                                    icon={
-                                                        expandedExams.includes(examName)
-                                                            ? 'chevron-down'
-                                                            : 'chevron-right'
-                                                    }
-                                                    size={20}
-                                                />
-                                                <Text style={styles.examGroupTitle}>
-                                                    {examName} - {subjects.length} items
-                                                </Text>
-                                            </TouchableOpacity>
-
-                                            {expandedExams.includes(examName) && (
-                                                <View style={styles.subjectList}>
-                                                    {subjects.map(subject => (
-                                                        <TouchableOpacity
-                                                            key={subject.SubjectCode}
-                                                            style={styles.subjectRow}
-                                                            onPress={() =>
-                                                                onSubjectToggle(
-                                                                    subject.SubjectCode
-                                                                )
-                                                            }
-                                                        >
-                                                            <Checkbox
-                                                                status={
-                                                                    selectedSubjects.includes(
-                                                                        subject.SubjectCode
-                                                                    )
-                                                                        ? 'checked'
-                                                                        : 'unchecked'
-                                                                }
-                                                            />
-                                                            <View style={styles.subjectInfo}>
-                                                                <Text
-                                                                    style={
-                                                                        styles.subjectDetails
-                                                                    }
-                                                                >
-                                                                    {subject.SubjectDetails}
-                                                                </Text>
-                                                                {subject.Paper && (
-                                                                    <Text
-                                                                        style={
-                                                                            styles.subjectPaper
-                                                                        }
-                                                                    >
-                                                                        {subject.Paper}
-                                                                    </Text>
-                                                                )}
-                                                            </View>
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </View>
-                                            )}
-                                        </View>
-                                    )
-                                )}
+                                {Object.entries(filteredGroupedSubjects).map(([examName, subjects]) => (
+                                    <View key={examName} style={styles.examGroup}>
+                                        <TouchableOpacity
+                                            style={styles.examGroupHeader}
+                                            onPress={() => onExamSectionToggle(examName)}
+                                        >
+                                            <IconButton
+                                                icon={expandedExams.includes(examName) ? 'chevron-down' : 'chevron-right'}
+                                                size={20}
+                                            />
+                                            <Text style={styles.examGroupTitle}>
+                                                {examName} - {subjects.length} items
+                                            </Text>
+                                        </TouchableOpacity>
+                                        {expandedExams.includes(examName) && (
+                                            <View style={styles.subjectList}>
+                                                {subjects.map(subject => (
+                                                    <TouchableOpacity
+                                                        key={subject.SubjectCode}
+                                                        style={styles.subjectRow}
+                                                        onPress={() => onSubjectToggle(subject.SubjectCode)}
+                                                    >
+                                                        <Checkbox
+                                                            status={selectedSubjects.includes(subject.SubjectCode) ? 'checked' : 'unchecked'}
+                                                        />
+                                                        <View style={styles.subjectInfo}>
+                                                            <Text style={styles.subjectDetails}>{subject.SubjectDetails}</Text>
+                                                            {subject.Paper && <Text style={styles.subjectPaper}>{subject.Paper}</Text>}
+                                                        </View>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
                             </Card.Content>
                         </Card>
                     )}
@@ -354,10 +293,7 @@ function ExamForm({ navigation, route }: ExamFormProps) {
                     visible={snackbarVisible}
                     onDismiss={() => setSnackbarVisible(false)}
                     duration={3000}
-                    action={{
-                        label: 'OK',
-                        onPress: () => setSnackbarVisible(false),
-                    }}
+                    action={{ label: 'OK', onPress: () => setSnackbarVisible(false) }}
                 >
                     {snackbarMessage}
                 </Snackbar>
@@ -367,171 +303,43 @@ function ExamForm({ navigation, route }: ExamFormProps) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 12,
-        backgroundColor: '#f5f5f5',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#08306b',
-    },
-    loadingBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-        gap: 8,
-    },
-    loadingText: {
-        fontSize: 13,
-        color: '#555',
-    },
-    scrollContent: {
-        paddingBottom: 24,
-    },
-    card: {
-        backgroundColor: '#fff',
-        elevation: 2,
-    },
-    cardSpacing: {
-        marginTop: 16,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1649b2',
-        marginBottom: 12,
-    },
-    sectionTitleAlt: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#8B0000',
-        marginBottom: 12,
-    },
-    formRow: {
-        flexDirection: 'row',
-        marginBottom: 12,
-        gap: 12,
-    },
-    formField: {
-        flex: 1,
-    },
-    formFieldSmall: {
-        flex: 0.3,
-    },
-    formFieldLarge: {
-        flex: 0.7,
-    },
-    fieldLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 4,
-    },
-    examSelectionContainer: {
-        marginBottom: 16,
-    },
-    checkboxRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 4,
-    },
-    checkboxLabel: {
-        fontSize: 14,
-        color: '#333',
-        marginLeft: 8,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 8,
-    },
-    saveButton: {
-        flex: 1,
-        backgroundColor: '#1649b2',
-    },
-    printButton: {
-        flex: 1,
-    },
-    searchBar: {
-        marginBottom: 12,
-        elevation: 0,
-    },
-    examGroup: {
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    examGroupHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-        paddingVertical: 8,
-        paddingRight: 12,
-    },
-    examGroupTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#333',
-    },
-    subjectList: {
-        paddingVertical: 8,
-    },
-    subjectRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-    },
-    subjectInfo: {
-        flex: 1,
-        marginLeft: 8,
-    },
-    subjectDetails: {
-        fontSize: 14,
-        color: '#333',
-        fontWeight: '500',
-    },
-    subjectPaper: {
-        fontSize: 12,
-        color: '#666',
-        marginTop: 2,
-    },
-    errorCard: {
-        backgroundColor: '#ffebee',
-        marginTop: 16,
-    },
-    errorText: {
-        color: '#d32f2f',
-        fontSize: 14,
-    },
-    centered: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-    },
-    centeredText: {
-        marginTop: 8,
-        fontSize: 14,
-        color: '#555',
-    },
+    container: { flex: 1, padding: 12, backgroundColor: '#f5f5f5' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    title: { fontSize: 20, fontWeight: '700', color: '#08306b' },
+    loadingBar: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 8 },
+    loadingText: { fontSize: 13, color: '#555' },
+    scrollContent: { paddingBottom: 24 },
+    card: { backgroundColor: '#fff', elevation: 2 },
+    cardSpacing: { marginTop: 16 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1649b2', marginBottom: 12 },
+    sectionTitleAlt: { fontSize: 16, fontWeight: '700', color: '#8B0000', marginBottom: 12 },
+    formRow: { flexDirection: 'row', marginBottom: 12, gap: 12 },
+    fieldContainer: { flex: 1 },
+    formField: { flex: 1 },
+    formFieldSmall: { flex: 0.3 },
+    formFieldLarge: { flex: 0.7 },
+    fieldLabel: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: -12 },
+    inputWrapper: { marginTop: -12 },
+    examSelectionContainer: { marginBottom: 12, marginTop: 4 },
+    checkboxRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 2 },
+    checkboxLabel: { fontSize: 14, color: '#333', marginLeft: 8 },
+    buttonRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
+    saveButton: { flex: 1, backgroundColor: '#1649b2' },
+    printButton: { flex: 1 },
+    searchBar: { marginBottom: 12, elevation: 0 },
+    examGroup: { marginBottom: 12, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, overflow: 'hidden' },
+    examGroupHeader: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', paddingVertical: 8, paddingRight: 12 },
+    examGroupTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
+    subjectList: { paddingVertical: 8 },
+    subjectRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+    subjectInfo: { flex: 1, marginLeft: 8 },
+    subjectDetails: { fontSize: 14, color: '#333', fontWeight: '500' },
+    subjectPaper: { fontSize: 12, color: '#666', marginTop: 2 },
+    errorCard: { backgroundColor: '#ffebee', marginTop: 16 },
+    errorText: { color: '#d32f2f', fontSize: 14 },
+    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 },
+    centeredText: { marginTop: 8, fontSize: 14, color: '#555' },
 });
 
 export default ExamForm;

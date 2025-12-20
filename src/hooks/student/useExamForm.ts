@@ -10,7 +10,6 @@ import {
 } from '../../api/services/student/examination.ts';
 import { ExamFormPayload } from '../../types/student/ExamForm.types';
 
-// Generic hook state interface
 interface UseApiState<T> {
     data: T | null;
     loading: boolean;
@@ -18,119 +17,40 @@ interface UseApiState<T> {
     refetch: () => Promise<void>;
 }
 
-// Hook for GetInstituteSectionList
-export const useInstituteSectionList = (CCode: number): UseApiState<any> => {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<Error | null>(null);
+const createApiHook = <T,>(apiCall: (...args: any[]) => Promise<T>) => {
+    return (...params: any[]): UseApiState<T> => {
+        const [data, setData] = useState<T | null>(null);
+        const [loading, setLoading] = useState<boolean>(false);
+        const [error, setError] = useState<Error | null>(null);
 
-    const fetchData = useCallback(async () => {
-        if (!CCode) return;
+        const fetchData = useCallback(async () => {
+            if (params.some(p => !p)) return;
 
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await GetInstituteSectionList(CCode);
-            setData(result);
-        } catch (err) {
-            setError(err as Error);
-        } finally {
-            setLoading(false);
-        }
-    }, [CCode]);
+            setLoading(true);
+            setError(null);
+            try {
+                const result = await apiCall(...params);
+                setData(result);
+            } catch (err) {
+                setError(err as Error);
+            } finally {
+                setLoading(false);
+            }
+        }, params);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        useEffect(() => {
+            fetchData();
+        }, [fetchData]);
 
-    return { data, loading, error, refetch: fetchData };
+        return { data, loading, error, refetch: fetchData };
+    };
 };
 
-// Hook for GetInstituteClassList
-export const useInstituteClassList = (CCode: number): UseApiState<any> => {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<Error | null>(null);
+export const useInstituteSectionList = createApiHook(GetInstituteSectionList);
+export const useInstituteClassList = createApiHook(GetInstituteClassList);
+export const useURNNOAdmission = createApiHook(GetURNNOAdmission);
+export const useClassOnExamList = createApiHook(GetClassOnExamList);
 
-    const fetchData = useCallback(async () => {
-        if (!CCode) return;
-
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await GetInstituteClassList(CCode);
-            setData(result);
-        } catch (err) {
-            setError(err as Error);
-        } finally {
-            setLoading(false);
-        }
-    }, [CCode]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
-};
-
-// Hook for GetURNNOAdmission
-export const useURNNOAdmission = (URNNO: number): UseApiState<any> => {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<Error | null>(null);
-
-    const fetchData = useCallback(async () => {
-        if (!URNNO) return;
-
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await GetURNNOAdmission(URNNO);
-            setData(result);
-        } catch (err) {
-            setError(err as Error);
-        } finally {
-            setLoading(false);
-        }
-    }, [URNNO]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
-};
-
-// Hook for GetClassOnExamList - refetches when ClassID changes
-export const useClassOnExamList = (ClassID: number): UseApiState<any> => {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<Error | null>(null);
-
-    const fetchData = useCallback(async () => {
-        if (!ClassID) return;
-
-        setLoading(true);
-        setError(null);
-        try {
-            const result = await GetClassOnExamList(ClassID);
-            setData(result);
-        } catch (err) {
-            setError(err as Error);
-        } finally {
-            setLoading(false);
-        }
-    }, [ClassID]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    return { data, loading, error, refetch: fetchData };
-};
-
-// Hook for GetClassSubjectPaperList - refetches when ClassID changes
 export const useClassSubjectPaperList = (
     AceYear: string,
     CCode: number,
@@ -149,14 +69,7 @@ export const useClassSubjectPaperList = (
         setLoading(true);
         setError(null);
         try {
-            const result = await GetClassSubjectPaperList(
-                AceYear,
-                CCode,
-                ClassID,
-                Status,
-                Syllabus,
-                URNNO,
-            );
+            const result = await GetClassSubjectPaperList(AceYear, CCode, ClassID, Status, Syllabus, URNNO);
             setData(result);
         } catch (err) {
             setError(err as Error);
@@ -172,11 +85,7 @@ export const useClassSubjectPaperList = (
     return { data, loading, error, refetch: fetchData };
 };
 
-// Hook for GetExamFormTimeTableList - refetches when ClassID changes
-export const useExamFormTimeTableList = (
-    CCode: number,
-    ClassID: number,
-): UseApiState<any> => {
+export const useExamFormTimeTableList = (CCode: number, ClassID: number): UseApiState<any> => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
@@ -203,7 +112,6 @@ export const useExamFormTimeTableList = (
     return { data, loading, error, refetch: fetchData };
 };
 
-// Combined hook that refetches all ClassID-dependent APIs when ClassID changes
 export const useClassDependentData = (
     CCode: number,
     ClassID: number,
@@ -213,38 +121,23 @@ export const useClassDependentData = (
     URNNO: number,
 ) => {
     const examList = useClassOnExamList(ClassID);
-    const subjectPaperList = useClassSubjectPaperList(
-        AceYear,
-        CCode,
-        ClassID,
-        Status,
-        Syllabus,
-        URNNO,
-    );
+    const subjectPaperList = useClassSubjectPaperList(AceYear, CCode, ClassID, Status, Syllabus, URNNO);
     const timeTableList = useExamFormTimeTableList(CCode, ClassID);
 
     const refetchAll = useCallback(async () => {
-        await Promise.all([
-            examList.refetch(),
-            subjectPaperList.refetch(),
-            timeTableList.refetch(),
-        ]);
+        await Promise.all([examList.refetch(), subjectPaperList.refetch(), timeTableList.refetch()]);
     }, [examList, subjectPaperList, timeTableList]);
 
     return {
         examList,
         subjectPaperList,
         timeTableList,
-        loading:
-            examList.loading ||
-            subjectPaperList.loading ||
-            timeTableList.loading,
+        loading: examList.loading || subjectPaperList.loading || timeTableList.loading,
         error: examList.error || subjectPaperList.error || timeTableList.error,
         refetchAll,
     };
 };
 
-// Hook for SaveExamForm
 export const useSaveExamForm = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);

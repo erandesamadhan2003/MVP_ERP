@@ -11,7 +11,7 @@ const Stack = createNativeStackNavigator();
 export default function StudentNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="StudentDashboard" component={StudentScreen} />
+      <Stack.Screen name="Dashboard" component={StudentScreen} />
       <Stack.Screen name="StudentProfile" component={StudentProfile} />
       <Stack.Screen name="StudentCourseEnrollment" component={StudentCourseEnrollment} />
       <Stack.Screen name="EnrollmentList" component={EnrollmentList} />

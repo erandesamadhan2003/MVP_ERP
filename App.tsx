@@ -45,7 +45,7 @@ export default function App() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="StudentDashboard" component={StudentNavigator} />
+            <Stack.Screen name="StudentNavigator" component={StudentNavigator} />
             <Stack.Screen name="FacultyDashboard" component={FacultyNavigator} />
             <Stack.Screen name="Debug" component={DebugScreen} options={{ headerShown: true }} />
           </Stack.Navigator>

@@ -119,15 +119,15 @@ export default function RegisterScreen({ navigation }: any) {
       console.log('Navigation: login successful, navigating to profile');
       
       // Step 3: Navigate directly to Student Profile screen
-      // Reset to StudentDashboard (StudentNavigator), then navigate to Profile
+      // Reset to StudentNavigator, then navigate to Profile
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{ name: 'StudentDashboard' }],
+          routes: [{ name: 'StudentNavigator' }],
         })
       );
       // Navigate to Profile screen within StudentNavigator
-      navigation.navigate('StudentDashboard', { screen: 'StudentProfile' });
+      navigation.navigate('StudentNavigator', { screen: 'StudentProfile' });
       
     } catch (error: any) {
       const errorMessage = error?.response?.data?.Message 

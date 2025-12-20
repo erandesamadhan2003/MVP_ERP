@@ -68,7 +68,7 @@ export default function LoginScreen({ navigation }: any) {
       const roleId = returnedUser?.RoleId ?? returnedUser?.UserType ?? result?.UserType ?? user?.UserType;
 
       if (roleId === 12) {
-        navigation.reset({ index: 0, routes: [{ name: 'StudentDashboard' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'StudentNavigator' }] });
       } else {
         navigation.reset({ index: 0, routes: [{ name: 'FacultyDashboard' }] });
       }
@@ -88,7 +88,7 @@ export default function LoginScreen({ navigation }: any) {
     if (isAuthenticated && user) {
       const userType = user.UserType;
       if (userType === 12) {
-        navigation.reset({ index: 0, routes: [{ name: 'StudentDashboard' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'StudentNavigator' }] });
       } else {
         // Route all non-12 users to faculty dashboard
         navigation.reset({ index: 0, routes: [{ name: 'FacultyDashboard' }] });
