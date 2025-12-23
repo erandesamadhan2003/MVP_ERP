@@ -1,13 +1,6 @@
 // screens/student/library/ReadingAttendance.tsx
-
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-    View,
-    StyleSheet,
-    ScrollView,
-    RefreshControl,
-    Image,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
     ActivityIndicator,
@@ -18,14 +11,15 @@ import {
     Snackbar,
     Divider,
 } from 'react-native-paper';
+
 import SafeAreaWrapper from '../../../components/SafeAreaWrapper';
 import { RootState } from '../../../store/store';
 import { useLibrary } from '../../../hooks/student/useLibrary';
 import { BookReadingAttendance } from '../../../types/student/Library.types';
 
 /* ---------- Helpers ---------- */
-const toBase64Image = (b64?: string | null) =>
-    b64 ? `data:image/jpeg;base64,${b64}` : undefined;
+const formatDate = (d?: string | null) =>
+    d ? new Date(d).toLocaleDateString() : '-';
 
 const buildAttendanceKey = (item: BookReadingAttendance, idx: number) =>
     [
@@ -37,24 +31,14 @@ const buildAttendanceKey = (item: BookReadingAttendance, idx: number) =>
         idx,
     ].join('_');
 
-/* ---------- Small reusable row ---------- */
-const InfoRow = ({ label, value }: { label: string; value?: any }) => (
-    <View style={styles.infoRow}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value}>{value ?? '-'}</Text>
-    </View>
-);
-
 /* ---------- Screen ---------- */
 function ReadingAttendance({ navigation, route }: any) {
     const user = useSelector((state: RootState) => state.auth.user);
-    const urnno = route?.params?.urnno || user?.URNNO;
+    const urnno = route?.params?.urnno ?? user?.URNNO;
 
     const {
         isLoading,
         errorMessage,
-        memberInfo,
-        identityImage,
         readingRoomStatus,
         fetchMemberInformation,
         fetchStudentIdentityImage,
@@ -65,9 +49,8 @@ function ReadingAttendance({ navigation, route }: any) {
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
     const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    /* ---------- Date range (API requirement) ---------- */
+    /* ---------- Date range ---------- */
     const BDate = useMemo(
         () => new Date(new Date().getFullYear(), 0, 1).toISOString(),
         [],
@@ -122,7 +105,7 @@ function ReadingAttendance({ navigation, route }: any) {
         setRefreshing(false);
     }, [loadData]);
 
-    /* ---------- Merge & deduplicate attendance ---------- */
+    /* ---------- Merge & dedupe attendance ---------- */
     const attendanceList = useMemo<BookReadingAttendance[]>(() => {
         if (!readingRoomStatus) return [];
 
@@ -157,11 +140,15 @@ function ReadingAttendance({ navigation, route }: any) {
 
         const q = searchQuery.toLowerCase();
         return attendanceList.filter(item =>
-            `${item.ClassName ?? ''} ${item.ReadingDate ?? ''} ${item.URNNO ?? ''}`
+            `${item.ClassName ?? ''} ${item.ReadingDate ?? ''} ${
+                item.URNNO ?? ''
+            }`
                 .toLowerCase()
                 .includes(q),
         );
     }, [attendanceList, searchQuery]);
+
+    const totalRecords = attendanceList.length;
 
     /* ---------- Guard ---------- */
     if (!urnno) {
@@ -181,31 +168,25 @@ function ReadingAttendance({ navigation, route }: any) {
             <View style={styles.container}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <View style={styles.headerLeft}>
-                        <IconButton
-                            icon="arrow-left"
-                            size={22}
-                            onPress={() => navigation.goBack()}
-                        />
-                        <Text style={styles.title}>Reading Hall</Text>
-                    </View>
                     <IconButton
-                        icon="refresh"
+                        icon="arrow-left"
                         size={22}
-                        onPress={onRefresh}
-                        disabled={isLoading}
+                        onPress={navigation.goBack}
                     />
+                    <Text style={styles.headerTitle}>Reading Attendance</Text>
                 </View>
 
                 {(isLoading || refreshing) && (
                     <View style={styles.loading}>
                         <ActivityIndicator />
-                        <Text style={styles.loadingText}>Loading...</Text>
+                        <Text style={styles.loadingText}>
+                            Loading attendance…
+                        </Text>
                     </View>
                 )}
 
                 <ScrollView
-                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.content}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -213,154 +194,76 @@ function ReadingAttendance({ navigation, route }: any) {
                         />
                     }
                 >
-                    {/* ================= STUDENT PROFILE ================= */}
-                    <Card style={[styles.card, styles.profileCard]}>
-                        <Card.Content style={styles.profileContent}>
-                            {identityImage?.PHOTO ? (
-                                <Image
-                                    source={{
-                                        uri: toBase64Image(
-                                            identityImage.PHOTO,
-                                        ),
-                                    }}
-                                    style={styles.profilePhoto}
-                                />
-                            ) : (
-                                <View style={styles.profilePhotoPlaceholder}>
-                                    <Text style={styles.photoPlaceholderText}>
-                                        {memberInfo?.FullName?.[0] ?? 'S'}
-                                    </Text>
-                                </View>
-                            )}
-
-                            <View style={styles.profileDetails}>
-                                <Text style={styles.profileName}>
-                                    {memberInfo?.FullName ??
-                                        'Student Name'}
-                                </Text>
-                                <Text style={styles.profileMeta}>
-                                    URNNO: {memberInfo?.URNNO ?? urnno}
-                                </Text>
-                                <Text style={styles.profileMeta}>
-                                    {memberInfo?.ClassName ??
-                                        'Course / Class'}
-                                </Text>
-                            </View>
-                        </Card.Content>
-                    </Card>
-
-                    {/* ================= ATTENDANCE ================= */}
-                    <Card style={[styles.card, styles.cardSpacing]}>
-                        <Card.Content>
-                            <Text style={styles.sectionTitleAlt}>
-                                Reading Attendance
+                    {/* ================= HERO ================= */}
+                    <View style={styles.hero}>
+                        <IconButton icon="library" size={36} />
+                        <View style={{ marginLeft: 12 }}>
+                            <Text style={styles.heroTitle}>
+                                Reading Hall Activity
                             </Text>
+                            <Text style={styles.heroSub}>
+                                Total records: {totalRecords}
+                            </Text>
+                        </View>
+                    </View>
 
-                            <Searchbar
-                                placeholder="Search by class / date / URN"
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                                style={styles.searchBar}
-                            />
+                    {/* ================= SEARCH ================= */}
+                    <Searchbar
+                        placeholder="Search by class / date / URN"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        style={styles.searchBar}
+                    />
+
+                    {/* ================= ATTENDANCE LIST ================= */}
+                    <Card style={styles.sectionCard}>
+                        <Card.Content>
+                            <Text style={styles.sectionTitle}>
+                                Attendance Records
+                            </Text>
+                            <Divider style={styles.divider} />
 
                             {filteredAttendance.length === 0 ? (
-                                <View style={styles.empty}>
-                                    <Text>No records to display</Text>
-                                </View>
+                                <Text style={styles.emptyText}>
+                                    No records to display
+                                </Text>
                             ) : (
-                                filteredAttendance.map((item, idx) => {
-                                    const key = buildAttendanceKey(
-                                        item,
-                                        idx,
-                                    );
-                                    const isSelected =
-                                        selectedId === key;
+                                filteredAttendance.map((item, idx) => (
+                                    <View
+                                        key={buildAttendanceKey(item, idx)}
+                                        style={styles.recordBlock}
+                                    >
+                                        <View style={styles.recordHeader}>
+                                            <Text style={styles.recordTitle}>
+                                                {item.ClassName ?? '-'}
+                                            </Text>
+                                            <Text style={styles.recordDate}>
+                                                {formatDate(item.ReadingDate)}
+                                            </Text>
+                                        </View>
 
-                                    return (
-                                        <Card
-                                            key={key}
-                                            style={[
-                                                styles.recordCard,
-                                                isSelected &&
-                                                    styles.selectedCard,
-                                            ]}
-                                            onPress={() =>
-                                                setSelectedId(key)
-                                            }
-                                        >
-                                            <Card.Content>
-                                                <View
-                                                    style={
-                                                        styles.cardHeader
-                                                    }
-                                                >
-                                                    <View>
-                                                        <Text
-                                                            style={
-                                                                styles.recordTitle
-                                                            }
-                                                        >
-                                                            {item.URNNO} –{' '}
-                                                            {item.ClassName ??
-                                                                '-'}
-                                                        </Text>
-                                                        <Text
-                                                            style={
-                                                                styles.recordSub
-                                                            }
-                                                        >
-                                                            {item.ReadingDate
-                                                                ? new Date(
-                                                                      item.ReadingDate,
-                                                                  ).toLocaleDateString()
-                                                                : '-'}
-                                                        </Text>
-                                                    </View>
+                                        <View style={styles.recordRow}>
+                                            <Text>
+                                                In: {item.InTime ?? '-'}
+                                            </Text>
+                                            <Text>
+                                                Out: {item.OutTime ?? '-'}
+                                            </Text>
+                                        </View>
 
-                                                    <View
-                                                        style={{
-                                                            alignItems:
-                                                                'flex-end',
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={
-                                                                styles.timeText
-                                                            }
-                                                        >
-                                                            In:{' '}
-                                                            {item.InTime ??
-                                                                '-'}
-                                                        </Text>
-                                                        <Text
-                                                            style={
-                                                                styles.timeText
-                                                            }
-                                                        >
-                                                            Out:{' '}
-                                                            {item.OutTime ??
-                                                                '-'}
-                                                        </Text>
-                                                    </View>
-                                                </View>
+                                        <Text style={styles.roomText}>
+                                            Room ID:{' '}
+                                            {item.BookReadingRoomID ?? '-'}
+                                        </Text>
 
-                                                <Divider
-                                                    style={
-                                                        styles.divider
-                                                    }
-                                                />
-
-                                                <InfoRow
-                                                    label="Room ID"
-                                                    value={
-                                                        item.BookReadingRoomID ??
-                                                        '-'
-                                                    }
-                                                />
-                                            </Card.Content>
-                                        </Card>
-                                    );
-                                })
+                                        {idx !==
+                                            filteredAttendance.length - 1 && (
+                                            <Divider
+                                                style={styles.subDivider}
+                                            />
+                                        )}
+                                    </View>
+                                ))
                             )}
                         </Card.Content>
                     </Card>
@@ -378,112 +281,90 @@ function ReadingAttendance({ navigation, route }: any) {
     );
 }
 
+export default ReadingAttendance;
+
 /* ---------- Styles ---------- */
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 12, backgroundColor: '#f5f5f5' },
+    container: { flex: 1, backgroundColor: '#f5f5f5' },
 
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
+        backgroundColor: '#fff',
+        padding: 12,
     },
-    headerLeft: { flexDirection: 'row', alignItems: 'center' },
-    title: { fontSize: 20, fontWeight: '700', color: '#08306b' },
-
-    loading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    loadingText: { fontSize: 13, color: '#555' },
-
-    card: { backgroundColor: '#fff', elevation: 2 },
-    cardSpacing: { marginTop: 16 },
-
-    /* Profile */
-    profileCard: { borderRadius: 12, marginBottom: 12 },
-    profileContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    profilePhoto: {
-        width: 72,
-        height: 96,
-        borderRadius: 8,
-        marginRight: 14,
-    },
-    profilePhotoPlaceholder: {
-        width: 72,
-        height: 96,
-        borderRadius: 8,
-        backgroundColor: '#5e35b1',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 14,
-    },
-    photoPlaceholderText: {
-        fontSize: 28,
-        color: '#fff',
-        fontWeight: '700',
-    },
-    profileDetails: { flex: 1 },
-    profileName: {
-        fontSize: 17,
+    headerTitle: {
+        fontSize: 20,
         fontWeight: '700',
         color: '#08306b',
-        marginBottom: 4,
-    },
-    profileMeta: {
-        fontSize: 13,
-        color: '#555',
-        marginBottom: 2,
     },
 
-    /* Attendance */
-    sectionTitleAlt: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#8B0000',
-        marginBottom: 12,
+    loading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        padding: 12,
     },
-    searchBar: { marginBottom: 12, elevation: 0 },
+    loadingText: { fontSize: 13, color: '#555' },
 
-    recordCard: {
-        marginBottom: 10,
+    content: { padding: 12 },
+
+    /* Hero */
+    hero: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 16,
         borderRadius: 10,
-        backgroundColor: '#ffffff',
+        elevation: 2,
+        marginBottom: 14,
     },
-    selectedCard: {
-        borderWidth: 2,
-        borderColor: '#1976d2',
-        backgroundColor: '#e3f2fd',
+    heroTitle: { fontSize: 17, fontWeight: '700' },
+    heroSub: { fontSize: 13, color: '#555', marginTop: 2 },
+
+    /* Search */
+    searchBar: {
+        marginBottom: 12,
+        elevation: 0,
     },
-    cardHeader: {
+
+    /* Section */
+    sectionCard: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        elevation: 2,
+        marginBottom: 14,
+    },
+    sectionTitle: { fontSize: 16, fontWeight: '700' },
+    divider: { marginVertical: 8 },
+    subDivider: { marginVertical: 12 },
+
+    /* Records */
+    recordBlock: { paddingVertical: 8 },
+    recordHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 6,
     },
     recordTitle: {
         fontSize: 15,
-        fontWeight: '700',
+        fontWeight: '600',
         color: '#0d47a1',
     },
-    recordSub: { fontSize: 13, color: '#555' },
-    timeText: { fontSize: 13, color: '#333' },
+    recordDate: { fontSize: 13, color: '#555' },
 
-    divider: { marginVertical: 8 },
-
-    infoRow: { flexDirection: 'row', marginBottom: 4 },
-    label: {
-        width: 80,
+    recordRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 4,
+    },
+    roomText: {
+        marginTop: 4,
         fontSize: 13,
         color: '#555',
-        fontWeight: '600',
     },
-    value: { flex: 1, fontSize: 13, color: '#111' },
 
-    empty: { padding: 16, alignItems: 'center' },
+    emptyText: { fontSize: 13, color: '#777' },
 
     centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     errorText: { color: '#d32f2f' },
 });
-
-export default ReadingAttendance;

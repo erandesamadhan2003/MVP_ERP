@@ -52,15 +52,29 @@ export default function StudentScreen({ navigation }: any) {
 
         if (name === 'profile') {
             navigation.navigate('StudentProfile');
-        } else if (name === 'course enrollment' || name === 'courseenrollment') {
+        } else if (
+            name === 'course enrollment' ||
+            name === 'courseenrollment'
+        ) {
             navigation.navigate('StudentCourseEnrollment');
         } else if (name === 'enrollment list' || name === 'enrollmentlist') {
             navigation.navigate('EnrollmentList');
-        } else if(name === 'exam form' || name === 'examform'){
+        } else if (name === 'exam form' || name === 'examform') {
             navigation.navigate('ExamForm');
-        } else if(name === 'reading attendance' || name === 'readingattendance'){
+        } else if (
+            name === 'reading attendance' ||
+            name === 'readingattendance'
+        ) {
             navigation.navigate('ReadingAttendance');
+        } else if (
+            name === 'library clearance' ||
+            name === 'libraryclearance' ||
+            name === 'member clearance' ||
+            name === 'memberclearance'
+        ) {
+            navigation.navigate('LibraryClearance');
         }
+
         // Add more mappings as needed
     };
 
@@ -250,7 +264,10 @@ export default function StudentScreen({ navigation }: any) {
                                     <Text style={styles.statGridCount}>
                                         {lecturesCount}
                                     </Text>
-                                    <Text style={styles.statGridLabel} numberOfLines={1}>
+                                    <Text
+                                        style={styles.statGridLabel}
+                                        numberOfLines={1}
+                                    >
                                         Lectures
                                     </Text>
                                     <Button
@@ -287,7 +304,10 @@ export default function StudentScreen({ navigation }: any) {
                                     <Text style={styles.statGridCount}>
                                         {homeworkCount}
                                     </Text>
-                                    <Text style={styles.statGridLabel} numberOfLines={1}>
+                                    <Text
+                                        style={styles.statGridLabel}
+                                        numberOfLines={1}
+                                    >
                                         Homework
                                     </Text>
                                     <Button
@@ -324,7 +344,10 @@ export default function StudentScreen({ navigation }: any) {
                                     <Text style={styles.statGridCount}>
                                         {examCount}
                                     </Text>
-                                    <Text style={styles.statGridLabel} numberOfLines={1}>
+                                    <Text
+                                        style={styles.statGridLabel}
+                                        numberOfLines={1}
+                                    >
                                         Exams
                                     </Text>
                                     <Button
@@ -437,10 +460,10 @@ export default function StudentScreen({ navigation }: any) {
         >
           View Redux State (Debug)
         </Button> */}
-             </ScrollView>
+            </ScrollView>
         </SafeAreaWrapper>
-     );
- }
+    );
+}
 
 const styles = StyleSheet.create({
     container: {
