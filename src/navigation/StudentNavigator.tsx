@@ -7,6 +7,7 @@ import EnrollmentList from '../screens/student/enrollment/EnrollmentList';
 import ExamForm from '../screens/student/examination/ExamForm';
 import ReadingAttendance from '../screens/student/library/ReadingAttendance';
 import LibraryClearance from '../screens/student/library/LibraryClearance';
+import PdfViewer from '../components/common/PdfViewer';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +21,8 @@ export default function StudentNavigator() {
       <Stack.Screen name="ExamForm" component={ExamForm} />
       <Stack.Screen name="ReadingAttendance" component={ReadingAttendance} />
       <Stack.Screen name="LibraryClearance" component={LibraryClearance} />
+      <Stack.Screen name="PdfViewer" component={PdfViewer} options={{headerShown: false}} />
+
       {/* Add more student routes here as needed */}
     </Stack.Navigator>
   );

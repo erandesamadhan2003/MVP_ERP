@@ -50,3 +50,13 @@ export const getURNDues = async (URNNO: number | string) => {
   );
   return res.data;
 };
+
+/* ================= CLEARANCE CERTIFICATE ================= */
+export const getMemberClearanceCertificate = async (payload: any) => {
+  const res = await api.post(
+    '/Institute/Member/GetMemberClearanceCertificate',
+    payload,
+  );
+  return res.data;
+};
+
