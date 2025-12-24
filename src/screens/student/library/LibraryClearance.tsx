@@ -1,6 +1,6 @@
 // screens/student/library/LibraryClearance.tsx
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   ActivityIndicator,
@@ -10,12 +10,11 @@ import {
   Card,
   Button,
 } from 'react-native-paper';
-import RNFS from 'react-native-fs';
-import FileViewer from 'react-native-file-viewer';
 
 import SafeAreaWrapper from '../../../components/SafeAreaWrapper';
 import { RootState } from '../../../store/store';
 import { useLibrary } from '../../../hooks/student/useLibrary';
+import { openPdfViewer } from '../../../utils/constant';
 
 /* ---------- Helpers ---------- */
 const formatDate = (d?: string | null) =>
@@ -100,22 +99,21 @@ function LibraryClearance({ navigation, route }: any) {
       });
 
       if (!base64Pdf || base64Pdf.length < 1000) {
-        throw new Error('Invalid PDF');
+        throw new Error('Invalid PDF data received');
       }
 
-      const fileName = `Library_Clearance_${urnno}.pdf`;
-      const path =
-        Platform.OS === 'android'
-          ? `${RNFS.DownloadDirectoryPath}/${fileName}`
-          : `${RNFS.DocumentDirectoryPath}/${fileName}`;
-
-      await RNFS.writeFile(path, base64Pdf, 'base64');
-
-      await FileViewer.open(path, { showOpenWithDialog: true });
-    } catch {
+      await openPdfViewer(
+        navigation,
+        {
+          type: 'base64',
+          base64: base64Pdf,
+        },
+        'Library Clearance Certificate'
+      );
+    } catch (error: any) {
       Alert.alert(
-        'PDF Error',
-        'No PDF viewer found. Please install Google PDF Viewer or Adobe Reader.',
+        'Error',
+        error?.message || 'Failed to load clearance certificate. Please try again.',
       );
     } finally {
       setPrinting(false);
