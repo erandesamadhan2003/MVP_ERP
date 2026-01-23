@@ -73,6 +73,12 @@ export default function StudentScreen({ navigation }: any) {
             name === 'memberclearance'
         ) {
             navigation.navigate('LibraryClearance');
+        } else if (
+            name === 'dues payment' ||
+            name === 'duespayment' ||
+            name === 'dues'
+        ) {
+            navigation.navigate('DuesPayment');
         }
 
         // Add more mappings as needed

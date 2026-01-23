@@ -1,4 +1,4 @@
-import { StudentPaymentPreview } from '../../../types/student/studentPaymentPreview.types';
+import { StudentPaymentPreview } from '../../../types/student/Payment.types';
 import { api } from '../../api';
 
 // http://mvperp.org:82/api/Admission/Admission/GetURNDuesForPayment?URNNO=654125
@@ -82,4 +82,18 @@ export const getStudentPaymentDetails = async (userId: string, applicationToken:
     }
 };
 
+
+// http://mvperp.org:82/api/Admission/AdmissionPaymentGateway/GetbankIAgreeFiles
+export const getBankIAgreeFiles = async (merchantPaymentSettingsID: number) => {
+  return api.post(
+    '/Admission/AdmissionPaymentGateway/GetbankIAgreeFiles',
+    { MerchentPaymentSettingsID: merchantPaymentSettingsID },
+    {
+      responseType: 'arraybuffer',
+      headers: {
+        Accept: 'application/pdf',
+      },
+    },
+  );
+};
 

@@ -1,52 +1,111 @@
 import { api } from '../../api';
 
-/* ================= MEMBER INFORMATION ================= */
+
+// http://mvperp.org:82/api/Institute/Member/GetAllLibraryMember
 export const getMemberInformation = async (payload: any) => {
-  const res = await api.post('/Institute/Member/GetAllLibraryMember', payload);
-  return res.data;
+    try {
+        const response = await api.post(
+            '/Institute/Member/GetAllLibraryMember',
+            payload
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-/* ================= STUDENT IDENTITY IMAGE ================= */
+
+// http://mvperp.org:82/api/Institute/CirculationMaster/GetStudentIdentityImg?URNNO=654125
 export const getStudentIdentityImage = async (URNNO: number) => {
-  const res = await api.get(
-    '/Institute/CirculationMaster/GetStudentIdentityImg',
-    { params: { URNNO } },
-  );
-  return res.data;
+    try {
+        const response = await api.get(
+            '/Institute/CirculationMaster/GetStudentIdentityImg',
+            {
+                params: {
+                    URNNO: URNNO
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-/* ================= BOOK READING ROOM STATUS ================= */
+
+// http://mvperp.org:82/api/Institute/BookReadingRoom/GetAllBookReadingRoomStatusList
 export const getBookReadingRoomStatus = async (payload: any) => {
-  const res = await api.post(
-    '/Institute/BookReadingRoom/GetAllBookReadingRoomStatusList',
-    payload,
-  );
-  return res.data;
+    try {
+        const response = await api.post(
+            '/Institute/BookReadingRoom/GetAllBookReadingRoomStatusList',
+            payload
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-/* ================= MEMBER BOOK DETAILS ================= */
+
+// http://mvperp.org:82/api/Institute/CirculationMaster/GetMemberBookDetails
 export const getMemberBookDetails = async (payload: any) => {
-  const res = await api.post(
-    '/Institute/CirculationMaster/GetMemberBookDetails',
-    payload,
-  );
-  return res.data;
+    try {
+        const response = await api.post(
+            '/Institute/CirculationMaster/GetMemberBookDetails',
+            payload
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-/* ================= URN ADMISSION ================= */
+
+// http://mvperp.org:82/api/Institute/CirculationMaster/GetURNNOAdmission?URNNO=654125
 export const getURNAdmissionDetails = async (URNNO: number | string) => {
-  const res = await api.get(
-    '/Institute/CirculationMaster/GetURNNOAdmission',
-    { params: { URNNO } },
-  );
-  return res.data;
+    try {
+        const response = await api.get(
+            '/Institute/CirculationMaster/GetURNNOAdmission',
+            {
+                params: {
+                    URNNO: URNNO
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
 
-/* ================= URN FEE DUES ================= */
+
+// http://mvperp.org:82/api/Admission/Admission/GetURNDues?URNNO=654125
 export const getURNDues = async (URNNO: number | string) => {
-  const res = await api.get(
-    '/Admission/Admission/GetURNDues',
-    { params: { URNNO } },
-  );
-  return res.data;
+    try {
+        const response = await api.get(
+            '/Admission/Admission/GetURNDues',
+            {
+                params: {
+                    URNNO: URNNO
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+// http://mvperp.org:82/api/Institute/Member/GetMemberClearanceCertificate
+export const getMemberClearanceCertificate = async (payload: any) => {
+    try {
+        const response = await api.post(
+            '/Institute/Member/GetMemberClearanceCertificate',
+            payload
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };

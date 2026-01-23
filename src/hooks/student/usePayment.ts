@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     getURNDuesForPayment,
     getPaymentBankInformation,
@@ -6,8 +6,9 @@ import {
     getStudentPaymentGateway,
     getExamFeePayment,
     getStudentPaymentDetails,
+    getBankIAgreeFiles,
 } from '../../api/services/student/payment';
-import { StudentPaymentPreview } from '../../types/student/studentPaymentPreview.types';
+import { StudentPaymentPreview } from '../../types/student/Payment.types';
 
 /* =========================================================
    1. URN Dues For Payment
@@ -83,19 +84,22 @@ export const useStudentPaymentPreview = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<any>(null);
 
-    const fetchPreview = async (payload: StudentPaymentPreview) => {
-        try {
-            setLoading(true);
-            const res = await getStudentPaymentPreview(payload);
-            setData(res);
-            return res;
-        } catch (err) {
-            setError(err);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    };
+    const fetchPreview = useCallback(
+        async (payload: StudentPaymentPreview) => {
+            try {
+                setLoading(true);
+                const res = await getStudentPaymentPreview(payload);
+                setData(res);
+                return res;
+            } catch (err) {
+                setError(err);
+                throw err;
+            } finally {
+                setLoading(false);
+            }
+        },
+        [], // ✅ stable reference forever
+    );
 
     return { data, loading, error, fetchPreview };
 };
@@ -197,4 +201,30 @@ export const useStudentPaymentDetails = (
     }, [userId, applicationToken]);
 
     return { data, loading, error };
+};
+
+
+export const useBankIAgreeFiles = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<any>(null);
+
+    const fetchIAgreePdf = useCallback(
+        async (merchantPaymentSettingsId: number) => {
+            try {
+                setLoading(true);
+                const res = await getBankIAgreeFiles(
+                    merchantPaymentSettingsId,
+                );
+                return res;
+            } catch (err) {
+                setError(err);
+                throw err;
+            } finally {
+                setLoading(false);
+            }
+        },
+        [],
+    );
+
+    return { fetchIAgreePdf, loading, error };
 };
