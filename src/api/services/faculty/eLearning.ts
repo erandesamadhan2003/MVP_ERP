@@ -1,14 +1,19 @@
 import { api } from '../../api';
-import { TeacherScheduleListRequest, StudentAttendanceListRequest, SaveStudentAttendanceRequest } from '../../../types/faculty/eLearning.types';
+import { TeacherScheduleListRequest, StudentAttendanceListRequest, SaveStudentAttendanceRequest, SubjectTimeTableListRequest } from '../../../types/faculty/eLearning.types';
 
 // POST http://mvperp.org:82/api/TimeTable/TeacherTimeTable/GetTeacherScheduleList
 export const getTeacherScheduleList = async (
     data: TeacherScheduleListRequest,
 ) => {
+    console.log('=== CALLING API ===');
+    console.log('Endpoint: /TimeTable/TeacherTimeTable/GetTeacherScheduleList');
+    console.log('Request data:', JSON.stringify(data, null, 2));
     const response = await api.post(
         '/TimeTable/TeacherTimeTable/GetTeacherScheduleList',
         data,
     );
+    console.log('=== API RESPONSE ===');
+    console.log('Response:', JSON.stringify(response.data, null, 2));
     return response.data;
 };
 
@@ -29,6 +34,17 @@ export const getStudentAttendanceList = async (
 ) => {
     const response = await api.post(
         '/TimeTable/StudentAttendance/StudentAttendanceList',
+        data,
+    );
+    return response.data;
+};
+
+// http://mvperp.org:82/api/TimeTable/ClassLectureScheduleMaster/GetSubjectTimeTableList
+export const getSubjectTimeTableList = async (
+    data: SubjectTimeTableListRequest,
+) => {
+    const response = await api.post(
+        '/TimeTable/ClassLectureScheduleMaster/GetSubjectTimeTableList',
         data,
     );
     return response.data;

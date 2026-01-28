@@ -110,6 +110,25 @@ export const useLibrary = () => {
                     getURNDues(URNNO),
                 ]);
 
+                // Log response structure for debugging
+                console.log('Library Clearance Data:', {
+                    books: {
+                        hasData: !!booksRes?.ResponseData,
+                        count: Array.isArray(booksRes?.ResponseData) ? booksRes.ResponseData.length : 'not array',
+                        type: typeof booksRes?.ResponseData,
+                    },
+                    admission: {
+                        hasData: !!admissionRes?.ResponseData,
+                        count: Array.isArray(admissionRes?.ResponseData) ? admissionRes.ResponseData.length : 'not array',
+                        type: typeof admissionRes?.ResponseData,
+                    },
+                    dues: {
+                        hasData: !!duesRes?.ResponseData,
+                        isArray: Array.isArray(duesRes?.ResponseData),
+                        type: typeof duesRes?.ResponseData,
+                    },
+                });
+
                 setIssuedBooks(booksRes?.ResponseData ?? []);
                 setAdmissionInfo(admissionRes?.ResponseData ?? []);
 
@@ -120,11 +139,27 @@ export const useLibrary = () => {
 
                 setFeeDues(duesObj ?? null);
 
+                // Log final state
+                console.log('Library Clearance State Set:', {
+                    issuedBooksCount: booksRes?.ResponseData?.length ?? 0,
+                    admissionInfoCount: admissionRes?.ResponseData?.length ?? 0,
+                    feeDues: duesObj,
+                });
+
                 return { booksRes, admissionRes, duesRes };
             } catch (e: any) {
-                setErrorMessage(
-                    e?.message ?? 'Failed to load library clearance',
-                );
+                const errorMsg = e?.code === 'ERR_NETWORK' || e?.message === 'Network Error'
+                    ? 'Network connection failed. Please check your internet connection.'
+                    : e?.message ?? 'Failed to load library clearance';
+                
+                console.error('Library Clearance Error:', {
+                    message: errorMsg,
+                    code: e?.code,
+                    type: e?.name,
+                    fullError: e,
+                });
+                
+                setErrorMessage(errorMsg);
                 throw e;
             } finally {
                 setIsLoading(false);

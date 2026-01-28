@@ -28,6 +28,7 @@ const INTERVAL_MS = 20; // timer tick (ms)
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [newsList, setNewsList] = useState<NewsAnnouncement[]>([]);
+  const [networkError, setNetworkError] = useState(false);
   const scrollRef = useRef<ScrollView | null>(null);
   const positionRef = useRef(0);
   const intervalRef = useRef<number | null>(null);
@@ -44,8 +45,24 @@ export default function HomeScreen({ navigation }: any) {
         ? list.ResponseData
         : [];
       setNewsList(finalList);
-    } catch (error) {
-      console.log('fetchNews error', error);
+    } catch (error: any) {
+      // Log error details for debugging
+      if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+        setNetworkError(true);
+        console.warn('Network error fetching news. This may be due to:', {
+          reason: 'Unable to reach API server',
+          possibleCauses: [
+            'Check internet connection',
+            'Verify API server is accessible',
+            'If using USB tethering, ensure device can reach the network',
+            'Check if firewall is blocking the connection',
+          ],
+          apiUrl: 'http://mvperp.org:82/api',
+        });
+      } else {
+        console.log('fetchNews error', error);
+      }
+      // Set empty list on error - app continues to work
       setNewsList([]);
     } finally {
       setLoading(false);
@@ -141,6 +158,26 @@ export default function HomeScreen({ navigation }: any) {
 
             {loading ? (
               <ActivityIndicator />
+            ) : networkError ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>
+                  Unable to load news. Please check your internet connection.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setNetworkError(false);
+                    setLoading(true);
+                    fetchNews();
+                  }}
+                  style={styles.retryButton}
+                >
+                  <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : newsList.length === 0 ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>No news available at the moment.</Text>
+              </View>
             ) : (
               <View style={{ height: VISIBLE_HEIGHT, overflow: 'hidden' }}>
                 <ScrollView
@@ -193,4 +230,8 @@ const styles = StyleSheet.create({
   newsItem: { paddingVertical: 10, paddingRight: 8 },
   newsHeader: { fontSize: 14, fontWeight: '700', color: '#003566' },
   newsDetails: { fontSize: 13, color: '#666', marginTop: 4 },
+  errorContainer: { padding: 20, alignItems: 'center', justifyContent: 'center', minHeight: 100 },
+  errorText: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 },
+  retryButton: { backgroundColor: '#0A84FF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  retryButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

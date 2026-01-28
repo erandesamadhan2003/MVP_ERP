@@ -31,11 +31,16 @@ export default function LoginScreen({ navigation }: any) {
   const [payload, setPayload] = useState<LoginPayload>(defaultLoginPayload());
   const [showPassword, setShowPassword] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [instituteCode, setInstituteCode] = useState('');
   const [validationErrors, setValidationErrors] = useState<{
     UserName?: string;
     Password?: string;
+    CCode?: string;
   }>({});
+
+  // Smart detection: Faculty login if institute code is provided
+  const isFacultyLogin = instituteCode.trim().length > 0;
 
   // Validation is centralized in utils/constant
 
@@ -47,6 +52,14 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
 
+    // Validate Institute Code if faculty login is checked
+    if (isFacultyLogin) {
+      if (!instituteCode || instituteCode.trim() === '') {
+        setValidationErrors((prev) => ({ ...prev, CCode: 'Institute Code is required' }));
+        return;
+      }
+    }
+
     // Try to fetch the device public IP so backend can resolve org/institute details
     const userIp = (await getIPAddress(3000)) || '';
 
@@ -55,7 +68,8 @@ export default function LoginScreen({ navigation }: any) {
       ...payload,
       AceYear: new Date().toISOString(),
       UserAccessAddress: userIp || '',
-      UserType: payload.UserType ?? 12,
+      UserType: isFacultyLogin ? 3 : 12,
+      ...(isFacultyLogin && { CCode: instituteCode.trim() }),
     };
 
     try {
@@ -106,121 +120,149 @@ export default function LoginScreen({ navigation }: any) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <IconButton
-            icon="arrow-left"
-            size={20}
-            onPress={() => navigation.goBack()}
-            mode="outlined"
-            style={styles.backButton}
-            iconColor="#1649b2"
-          />
-          <Text style={styles.title}>Login</Text>
-          <Text style={styles.subtitle}>Welcome back!</Text>
-        </View>
-
-        {/* Form */}
-        <View style={styles.formContainer}>
-          {/* Email Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email or Username</Text>
-            <TextInput
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <IconButton
+              icon="arrow-left"
+              size={20}
+              onPress={() => navigation.goBack()}
               mode="outlined"
-              placeholder="Enter your email or username"
-              value={payload.UserName}
-              onChangeText={(text) => {
-                setPayload((p) => ({ ...p, UserName: text }));
-                if (validationErrors.UserName) {
-                  setValidationErrors((prev) => ({ ...prev, UserName: '' }));
-                }
-              }}
-              editable={!loading}
-              style={styles.input}
-              outlineColor={validationErrors.UserName ? '#d32f2f' : '#ddd'}
-              activeOutlineColor={validationErrors.UserName ? '#d32f2f' : '#1649b2'}
+              style={styles.backButton}
+              iconColor="#1649b2"
             />
-            {validationErrors.UserName && (
-              <HelperText type="error">{validationErrors.UserName}</HelperText>
-            )}
+            <Text style={styles.title}>Login</Text>
+            <Text style={styles.subtitle}>Welcome back!</Text>
           </View>
 
-          {/* Password Input */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              mode="outlined"
-              placeholder="Enter your password"
-              value={payload.Password}
-              onChangeText={(text) => {
-                setPayload((p) => ({ ...p, Password: text }));
-                if (validationErrors.Password) {
-                  setValidationErrors((prev) => ({ ...prev, Password: '' }));
+          {/* Form */}
+          <View style={styles.formContainer}>
+            {/* Email Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email or Username</Text>
+              <TextInput
+                mode="outlined"
+                placeholder="Enter your email or username"
+                value={payload.UserName}
+                onChangeText={(text) => {
+                  setPayload((p) => ({ ...p, UserName: text }));
+                  if (validationErrors.UserName) {
+                    setValidationErrors((prev) => ({ ...prev, UserName: '' }));
+                  }
+                }}
+                editable={!loading}
+                style={styles.input}
+                outlineColor={validationErrors.UserName ? '#d32f2f' : '#ddd'}
+                activeOutlineColor={validationErrors.UserName ? '#d32f2f' : '#1649b2'}
+              />
+              {validationErrors.UserName && (
+                <HelperText type="error">{validationErrors.UserName}</HelperText>
+              )}
+            </View>
+
+            {/* Password Input */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                mode="outlined"
+                placeholder="Enter your password"
+                value={payload.Password}
+                onChangeText={(text) => {
+                  setPayload((p) => ({ ...p, Password: text }));
+                  if (validationErrors.Password) {
+                    setValidationErrors((prev) => ({ ...prev, Password: '' }));
+                  }
+                }}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+                style={styles.input}
+                right={
+                  <TextInput.Icon
+                    icon={showPassword ? 'eye-off' : 'eye'}
+                    onPress={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                  />
                 }
-              }}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-              style={styles.input}
-              right={
-                <TextInput.Icon
-                  icon={showPassword ? 'eye-off' : 'eye'}
-                  onPress={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                />
-              }
-              outlineColor={validationErrors.Password ? '#d32f2f' : '#ddd'}
-              activeOutlineColor={validationErrors.Password ? '#d32f2f' : '#1649b2'}
-            />
-            {validationErrors.Password && (
-              <HelperText type="error">{validationErrors.Password}</HelperText>
-            )}
-          </View>
+                outlineColor={validationErrors.Password ? '#d32f2f' : '#ddd'}
+                activeOutlineColor={validationErrors.Password ? '#d32f2f' : '#1649b2'}
+              />
+              {validationErrors.Password && (
+                <HelperText type="error">{validationErrors.Password}</HelperText>
+              )}
+            </View>
 
-          {/* Forgot Password Link */}
-          <TouchableOpacity
-            style={styles.forgotPasswordLink}
-            disabled={loading}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
+            {/* Institute Code Input (Always visible with smart helper text) */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Institute Code
+                <Text style={styles.optionalLabel}> (Faculty only)</Text>
+              </Text>
+              <TextInput
+                mode="outlined"
+                placeholder="Leave empty for student login"
+                value={instituteCode}
+                onChangeText={(text) => {
+                  setInstituteCode(text);
+                  if (validationErrors.CCode) {
+                    setValidationErrors((prev) => ({ ...prev, CCode: '' }));
+                  }
+                }}
+                editable={!loading}
+                style={styles.input}
+                keyboardType="numeric"
+                outlineColor={validationErrors.CCode ? '#d32f2f' : '#ddd'}
+                activeOutlineColor={validationErrors.CCode ? '#d32f2f' : '#1649b2'}
+              />
 
-          {/* Login Button */}
-          <Button
-            mode="contained"
-            onPress={handleLogin}
-            loading={loading}
-            disabled={loading}
-            style={styles.loginButton}
-            labelStyle={styles.loginButtonLabel}
-          >
-            {loading ? 'Logging in...' : 'Log In'}
-          </Button>
+              {validationErrors.CCode && (
+                <HelperText type="error">{validationErrors.CCode}</HelperText>
+              )}
+            </View>
 
-          {/* Register Link */}
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Don't have an account?</Text>
+            {/* Forgot Password Link */}
             <TouchableOpacity
-              onPress={() => navigation.navigate('Register')}
+              style={styles.forgotPasswordLink}
               disabled={loading}
             >
-              <Text style={styles.registerLink}>Register here</Text>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
 
-      {/* Error Snackbar */}
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => {
-          setSnackbarVisible(false);
-          setSnackbarMessage(null);
-        }}
-        duration={4000}
-        style={styles.snackbar}
-      >
-        {snackbarMessage || error || 'Login failed. Please try again.'}
-      </Snackbar>
+            {/* Login Button */}
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              loading={loading}
+              disabled={loading}
+              style={styles.loginButton}
+              labelStyle={styles.loginButtonLabel}
+            >
+              {loading ? 'Logging in...' : 'Log In'}
+            </Button>
+
+            {/* Register Link */}
+            <View style={styles.registerContainer}>
+              <Text style={styles.registerText}>Don't have an account?</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Register')}
+                disabled={loading}
+              >
+                <Text style={styles.registerLink}>Register here</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Error Snackbar */}
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => {
+            setSnackbarVisible(false);
+            setSnackbarMessage(null);
+          }}
+          duration={4000}
+          style={styles.snackbar}
+        >
+          {snackbarMessage || error || 'Login failed. Please try again.'}
+        </Snackbar>
       </KeyboardAvoidingView>
     </SafeAreaWrapper>
   );
@@ -244,6 +286,17 @@ const styles = StyleSheet.create({
 
   forgotPasswordLink: { marginBottom: 20, alignSelf: 'flex-end' },
   forgotPasswordText: { color: '#1649b2', fontSize: 14, fontWeight: '600' },
+
+  optionalLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  helperInfo: {
+    color: '#1649b2',
+    fontWeight: '600',
+  },
 
   loginButton: {
     marginVertical: 12,

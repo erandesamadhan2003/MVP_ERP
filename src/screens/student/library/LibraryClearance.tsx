@@ -40,25 +40,78 @@ function LibraryClearance({ navigation, route }: any) {
   } = useLibrary();
 
   const [printing, setPrinting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   /* ---------- Load data ---------- */
-  const loadData = useCallback(async () => {
-    if (!urnno) return;
+  const loadData = useCallback(async (isRetry = false) => {
+    if (!urnno) {
+      setLoadError('URNNO is missing. Please login again.');
+      return;
+    }
 
-    await Promise.all([
-      fetchMemberInformation({
-        URNNO: String(urnno),
-        CCode: String(ccode),
-        MemberTypeID: 1,
-        Status: 'GetMemberDetails',
-        BDate: new Date(new Date().getFullYear(), 0, 1).toISOString(),
-        EDate: new Date().toISOString(),
-      }).catch(() => null),
+    if (isRetry) {
+      setRetrying(true);
+    }
+    setLoadError(null);
 
-      fetchStudentIdentityImage(Number(urnno)).catch(() => null),
+    try {
+      const results = await Promise.allSettled([
+        fetchMemberInformation({
+          URNNO: String(urnno),
+          CCode: String(ccode),
+          MemberTypeID: 1,
+          Status: 'GetMemberDetails',
+          BDate: new Date(new Date().getFullYear(), 0, 1).toISOString(),
+          EDate: new Date().toISOString(),
+        }),
 
-      fetchLibraryClearance(urnno, ccode).catch(() => null),
-    ]);
+        fetchStudentIdentityImage(Number(urnno)),
+
+        fetchLibraryClearance(urnno, ccode),
+      ]);
+
+      // Check for errors and log them
+      const errors: string[] = [];
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const error = result.reason;
+          const errorName = ['Member Information', 'Identity Image', 'Library Clearance'][index];
+          console.warn(`Failed to load ${errorName}:`, {
+            error: error?.message || error,
+            code: error?.code,
+            type: error?.name,
+          });
+          
+          if (error?.code === 'ERR_NETWORK' || error?.message === 'Network Error') {
+            errors.push(`Network error loading ${errorName.toLowerCase()}`);
+          } else {
+            errors.push(`Failed to load ${errorName.toLowerCase()}`);
+          }
+        }
+      });
+
+      // If all requests failed, show error
+      if (errors.length === results.length) {
+        setLoadError(
+          errors.length > 1
+            ? 'Failed to load library data. Please check your connection and try again.'
+            : errors[0]
+        );
+      } else if (errors.length > 0) {
+        // Some succeeded, some failed - log but don't block UI
+        console.warn('Partial data loaded. Some requests failed:', errors);
+      }
+    } catch (error: any) {
+      console.error('Unexpected error loading library data:', error);
+      setLoadError(
+        error?.code === 'ERR_NETWORK' || error?.message === 'Network Error'
+          ? 'Network connection failed. Please check your internet connection.'
+          : 'Failed to load library data. Please try again.'
+      );
+    } finally {
+      setRetrying(false);
+    }
   }, [
     urnno,
     ccode,
@@ -80,6 +133,9 @@ function LibraryClearance({ navigation, route }: any) {
   const issuedCount = issuedBooks?.length ?? 0;
   const hasIssues = dues > 0 || issuedCount > 0;
   const admission = admissionInfo?.[0];
+  
+  // Check if data has been loaded (not just empty, but actually loaded)
+  const dataLoaded = !isLoading && (feeDues !== null || issuedBooks.length > 0 || admissionInfo.length > 0 || loadError !== null);
 
   /* ---------- Print ---------- */
   const onPrint = async () => {
@@ -129,41 +185,64 @@ function LibraryClearance({ navigation, route }: any) {
           <Text style={styles.headerTitle}>Library Clearance</Text>
         </View>
 
-        {isLoading && (
+        {(isLoading || retrying) && (
           <View style={styles.loading}>
             <ActivityIndicator />
-            <Text style={styles.loadingText}>Loading clearance…</Text>
+            <Text style={styles.loadingText}>
+              {retrying ? 'Retrying…' : 'Loading clearance…'}
+            </Text>
           </View>
         )}
 
         <ScrollView contentContainerStyle={styles.content}>
+          {/* Error Message */}
+          {(loadError || errorMessage) && (
+            <Card style={[styles.sectionCard, styles.errorCard]}>
+              <Card.Content>
+                <Text style={styles.errorTitle}>⚠️ Error Loading Data</Text>
+                <Text style={styles.errorMessageText}>
+                  {loadError || errorMessage}
+                </Text>
+                <Button
+                  mode="outlined"
+                  onPress={() => loadData(true)}
+                  style={styles.retryButton}
+                  disabled={isLoading || retrying}
+                >
+                  {retrying ? 'Retrying...' : 'Retry'}
+                </Button>
+              </Card.Content>
+            </Card>
+          )}
           {/* Status */}
-          <View
-            style={[
-              styles.hero,
-              hasIssues ? styles.heroWarn : styles.heroOk,
-            ]}
-          >
-            <IconButton
-              icon={
-                hasIssues
-                  ? 'alert-circle-outline'
-                  : 'check-circle-outline'
-              }
-              size={36}
-              iconColor={hasIssues ? '#ef6c00' : '#2e7d32'}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.heroTitle}>
-                {hasIssues ? 'Clearance Pending' : 'Clearance Completed'}
-              </Text>
-              <Text style={styles.heroSub}>
-                {hasIssues
-                  ? 'Resolve pending dues or return books'
-                  : 'No pending library obligations'}
-              </Text>
+          {dataLoaded && (
+            <View
+              style={[
+                styles.hero,
+                hasIssues ? styles.heroWarn : styles.heroOk,
+              ]}
+            >
+              <IconButton
+                icon={
+                  hasIssues
+                    ? 'alert-circle-outline'
+                    : 'check-circle-outline'
+                }
+                size={36}
+                iconColor={hasIssues ? '#ef6c00' : '#2e7d32'}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.heroTitle}>
+                  {hasIssues ? 'Clearance Pending' : 'Clearance Completed'}
+                </Text>
+                <Text style={styles.heroSub}>
+                  {hasIssues
+                    ? 'Resolve pending dues or return books'
+                    : 'No pending library obligations'}
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Highlights */}
           <View style={styles.signalRow}>
@@ -267,9 +346,6 @@ function LibraryClearance({ navigation, route }: any) {
             Print Clearance Certificate
           </Button>
 
-          {errorMessage && (
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          )}
         </ScrollView>
       </View>
     </SafeAreaWrapper>
@@ -361,5 +437,8 @@ const styles = StyleSheet.create({
     printBtn: { marginTop: 8, marginBottom: 20 },
 
     emptyText: { fontSize: 13, color: '#777' },
-    errorText: { color: '#d32f2f', padding: 8 },
+    errorCard: { backgroundColor: '#ffebee', borderColor: '#d32f2f', borderWidth: 1 },
+    errorTitle: { fontSize: 16, fontWeight: '700', color: '#d32f2f', marginBottom: 8 },
+    errorMessageText: { fontSize: 14, color: '#c62828', marginBottom: 12 },
+    retryButton: { marginTop: 8 },
 });
